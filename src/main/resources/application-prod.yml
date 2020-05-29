@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  datasource:
+    url: 'jdbc:mysql://${MYSQL_HOST:localhost}:3306/schema1?serverTimezone=UTC'
+    username: 'root'
+    password: 'admin'
+  flyway:
+    baseline-on-migrate: true
