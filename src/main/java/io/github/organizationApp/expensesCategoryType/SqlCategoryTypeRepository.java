@@ -1,4 +1,10 @@
 package io.github.organizationApp.expensesCategoryType;
 
-interface SqlCategoryTypeRepository {
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+
+@Repository
+interface SqlCategoryTypeRepository extends CategoryTypeRepository, JpaRepository<CategoryType,Integer> {
 }

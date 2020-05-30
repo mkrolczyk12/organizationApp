@@ -1,6 +1,7 @@
 package io.github.organizationApp.expensesCategoryType;
 
 import io.github.organizationApp.expensesProcess.Process;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -8,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "expenses_category")
-public class CategoryType {
+public class CategoryType extends RepresentationModel<CategoryType> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -38,4 +39,9 @@ public class CategoryType {
 
     public List<Process> getProcesses() {return processes;}
     public void setProcesses(final List<Process> processes) {this.processes = processes;}
+
+    void fullUpdate(final CategoryType toUpdate) {
+        this.type = toUpdate.type;
+        this.description = toUpdate.description;
+    }
 }

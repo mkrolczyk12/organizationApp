@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException;
 
 @Controller
 @GeneralExceptionsProcessing
-@RequestMapping("/process")
+@RequestMapping("process")
 class ProcessController {
     private static final Logger logger = LoggerFactory.getLogger(ProcessController.class);
     private final ProcessService service;
@@ -39,6 +39,9 @@ class ProcessController {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * API
+     */
     @Transactional
     @ResponseBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
@@ -142,5 +145,9 @@ class ProcessController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    /**
+     * Templates
+     */
 }
 

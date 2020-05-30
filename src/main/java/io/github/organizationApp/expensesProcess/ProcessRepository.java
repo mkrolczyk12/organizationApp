@@ -11,10 +11,13 @@ import java.util.Optional;
 public interface ProcessRepository {
 
     Process save(Process entity);
+
     List<Process> findAll();
     Page<Process> findAll(Pageable page);
     Optional<Process> findById(Long id);
     boolean existsById(Long id);
+
     Process saveAndFlush(Process process);
+
     void deleteById(Long id);
 }
