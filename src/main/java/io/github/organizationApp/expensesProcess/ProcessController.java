@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException;
 
 @Controller
 @GeneralExceptionsProcessing
-@RequestMapping("process")
+@RequestMapping("/process")
 class ProcessController {
     private static final Logger logger = LoggerFactory.getLogger(ProcessController.class);
     private final ProcessService service;
@@ -40,7 +40,7 @@ class ProcessController {
     }
 
     /**
-     * API
+     * JSON:API
      */
     @Transactional
     @ResponseBody
@@ -52,7 +52,7 @@ class ProcessController {
     }
     @Timed(value = "controller.process.readProcesses",histogram = true,percentiles = {0.5,0.95,0.99})
     @ResponseBody
-    @GetMapping(params = {"!sort","!size","!page"})
+    @GetMapping(params = {"!sort","!size","!page"},consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CollectionModel<Process>> readProcesses() {
         try {
             logger.info("starting process async finding");
@@ -72,7 +72,7 @@ class ProcessController {
     }
     @Timed(value = "controller.process.readProcesses(+Pageable param)",histogram = true,percentiles = {0.5,0.95,0.99})
     @ResponseBody
-    @GetMapping
+    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CollectionModel<PagedModel<Process>>> readProcesses(Pageable page) {
         try {
             logger.info("starting process async finding");
@@ -91,7 +91,7 @@ class ProcessController {
         }
     }
     @ResponseBody
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<EntityModel<Process>> readProcess(@PathVariable Long id) {
         return service.findById(id)
                 .map(process -> {
@@ -135,7 +135,7 @@ class ProcessController {
     }
     @Transactional
     @ResponseBody
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteProcess(@PathVariable Long id) {
         return service.findById(id)
                 .map(process -> {

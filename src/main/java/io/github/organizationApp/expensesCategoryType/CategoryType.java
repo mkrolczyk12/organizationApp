@@ -1,6 +1,7 @@
 package io.github.organizationApp.expensesCategoryType;
 
 import io.github.organizationApp.expensesProcess.Process;
+import io.github.organizationApp.monthExpenses.MonthExpenses;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
@@ -22,11 +23,19 @@ public class CategoryType extends RepresentationModel<CategoryType> {
      */
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "category_id")
     private List<Process> processes;
+    @ManyToOne
+    @JoinColumn(name = "month_id")
+    private MonthExpenses monthExpenses_id;
 
     /**
      * Hibernate use it
      */
     public CategoryType() {
+    }
+
+    public CategoryType(CategoryType source) {
+        this.type = source.type;
+        this.description = source.description;
     }
 
     public int getId() {return id;}
@@ -39,6 +48,9 @@ public class CategoryType extends RepresentationModel<CategoryType> {
 
     public List<Process> getProcesses() {return processes;}
     public void setProcesses(final List<Process> processes) {this.processes = processes;}
+
+    public MonthExpenses getMonthExpenses_id() {return monthExpenses_id;}
+    public void setMonthExpenses_id(final MonthExpenses monthExpenses_id) {this.monthExpenses_id = monthExpenses_id;}
 
     void fullUpdate(final CategoryType toUpdate) {
         this.type = toUpdate.type;

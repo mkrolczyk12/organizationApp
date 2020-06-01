@@ -1,6 +1,7 @@
 package io.github.organizationApp.expensesProcess;
 
 import io.github.organizationApp.expensesCategoryType.CategoryType;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
@@ -19,7 +20,7 @@ public class Process extends RepresentationModel<Process> {
     private BigDecimal price;
     @NotBlank(message = "select currency")
     private String currency;
-//    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime buy_date;
     @NotBlank(message = "description can't be null or empty")
     private String description;
@@ -42,8 +43,45 @@ public class Process extends RepresentationModel<Process> {
     /**
      * Hibernate use it
      */
-    public Process() {
+    Process() {
     }
+
+    public Process(BigDecimal price, String currency, LocalDateTime buy_date) {
+        this.price = price;
+        this.currency = currency;
+        this.buy_date = buy_date;
+        this.description = "";
+        this.transaction_type = "";
+        this.notes = "";
+    }
+
+    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description) {
+        this.price = price;
+        this.currency = currency;
+        this.buy_date = buy_date;
+        this.description = description;
+        this.transaction_type = "";
+        this.notes = "";
+    }
+
+    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description,String transaction_type) {
+        this.price = price;
+        this.currency = currency;
+        this.buy_date = buy_date;
+        this.description = description;
+        this.transaction_type = transaction_type;
+        this.notes = "";
+    }
+
+    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description,String transaction_type,String notes) {
+        this.price = price;
+        this.currency = currency;
+        this.buy_date = buy_date;
+        this.description = description;
+        this.transaction_type = transaction_type;
+        this.notes = notes;
+    }
+
 
     public Long getId() {return id;}
 

@@ -5,12 +5,12 @@ DROP TABLE IF EXISTS expenses_process;
 
 CREATE TABLE year_expenses (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    year DATETIME,
+    year VARCHAR(15) NOT NULL,
     description VARCHAR(200)
 );
 CREATE TABLE month_expenses (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    month DATETIME,
+    month VARCHAR(15) NOT NULL,
     description VARCHAR(200),
     year_id INT,
     FOREIGN KEY (year_id) REFERENCES year_expenses (id)

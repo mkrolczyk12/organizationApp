@@ -26,10 +26,15 @@ public class ProcessService {
         this.repository = repository;
     }
 
+    /**
+     * Create
+     */
     Process save(Process entity) {
         return repository.save(entity);
     }
-
+    /**
+     * Read
+     */
     @Async
     public CompletableFuture<List<Process>> findAllAsync() {
         return CompletableFuture.supplyAsync(() -> repository.findAll());
@@ -46,22 +51,6 @@ public class ProcessService {
 
     Page<Process> findAll(Pageable page) {
         return repository.findAll(page);
-    }
-
-    Optional<Process> findById(Long id) {
-        return repository.findById(id);
-    }
-
-    boolean existsById(Long id) {
-        return repository.existsById(id);
-    }
-
-    Process saveAndFlush(Process process) {
-        return repository.saveAndFlush(process);
-    }
-
-    void deleteProcess(Long id) {
-        repository.deleteById(id);
     }
 
     CollectionModel<Process> addEachProcessLink(final List<Process> result) {
@@ -81,4 +70,25 @@ public class ProcessService {
 
         return processCollection;
     }
+
+    Optional<Process> findById(Long id) {
+        return repository.findById(id);
+    }
+
+    boolean existsById(Long id) {
+        return repository.existsById(id);
+    }
+    /**
+     * Update
+     */
+    Process saveAndFlush(Process process) {
+        return repository.saveAndFlush(process);
+    }
+    /**
+     * Delete
+     */
+    void deleteProcess(Long id) {
+        repository.deleteById(id);
+    }
+
 }

@@ -23,23 +23,37 @@ public class CategoryTypeService {
         this.repository = repository;
     }
 
+    /**
+     * Create
+     */
     CategoryType save(final CategoryType toCategory) {
         return repository.save(toCategory);
     }
-
+    /**
+     * Read
+     */
     List<CategoryType> findAll() {
         return repository.findAll();
     }
+
     Page<CategoryType> findAll(Pageable page) {
         return repository.findAll(page);
     }
+
     Optional<CategoryType> findById(final Integer id) {
         return repository.findById(id);
     }
 
+    CategoryType existsByType(String type) {
+        return repository.existsByType(type);
+    }
+    /**
+     * Update
+     */
     CategoryType saveAndFlush(final CategoryType updatedCategoryType) {
         return repository.saveAndFlush(updatedCategoryType);
     }
+
     CollectionModel<CategoryType> addEachCategoryTypeLink(final List<CategoryType> result) {
         result.forEach(category -> category.add(linkTo(CategoryTypeController.class).slash(category.getId()).withSelfRel()));
         Link link1 = linkTo(CategoryTypeController.class).withSelfRel();
@@ -48,6 +62,7 @@ public class CategoryTypeService {
 
         return categoryTypeCollection;
     }
+
     CollectionModel<PagedModel<CategoryType>> addEachCategoryTypeLink(final Page<CategoryType> result) {
         result.forEach(category -> category.add(linkTo(CategoryTypeController.class).slash(category.getId()).withSelfRel()));
         Link link1 = linkTo(CategoryTypeController.class).withSelfRel();
@@ -56,8 +71,9 @@ public class CategoryTypeService {
 
         return categoryTypeCollection;
     }
-
-
+    /**
+     * Delete
+     */
     void deleteCategoryType(final Integer id) {
         repository.deleteById(id);
     }
