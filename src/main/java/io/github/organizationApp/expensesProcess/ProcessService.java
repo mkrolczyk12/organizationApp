@@ -53,7 +53,7 @@ public class ProcessService {
         return repository.findAll(page);
     }
 
-    CollectionModel<Process> addEachProcessLink(final List<Process> result) {
+    public CollectionModel<Process> addEachProcessLink(final List<Process> result) {
         result.forEach(process -> process.add(linkTo(ProcessController.class).slash(process.getId()).withSelfRel()));
         Link link1 = linkTo(ProcessController.class).withSelfRel();
         Link link2 = linkTo(ProcessController.class).withRel("?{sort,size,page}");
@@ -62,7 +62,7 @@ public class ProcessService {
         return processCollection;
     }
 
-    CollectionModel<PagedModel<Process>> addEachProcessLink(final Page<Process> result) {
+    public CollectionModel<PagedModel<Process>> addEachProcessLink(final Page<Process> result) {
         result.forEach(process -> process.add(linkTo(ProcessController.class).slash(process.getId()).withSelfRel()));
         Link link1 = linkTo(ProcessController.class).withSelfRel();
         Link link2 = linkTo(ProcessController.class).withRel("?{sort,size,page}");

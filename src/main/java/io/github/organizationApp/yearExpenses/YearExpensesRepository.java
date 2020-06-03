@@ -12,6 +12,7 @@ public interface YearExpensesRepository {
     List<YearExpenses> findAll();
     Page<YearExpenses> findAll(Pageable page);
     Optional<YearExpenses> findById(Integer id);
+    Optional<YearExpenses> findByYear(String year);
     boolean existsById(Integer id);
     boolean existsByYear(String year);
 

@@ -24,11 +24,11 @@ CREATE TABLE expenses_category (
 );
 CREATE TABLE expenses_process (
     id LONG PRIMARY KEY AUTO_INCREMENT,
+    description VARCHAR(200) NOT NULL,
     price DECIMAL(15,2) NOT NULL,
     currency VARCHAR(6),
-    buy_date DATETIME NOT NULL,
-    description VARCHAR(200) NOT NULL,
     transaction_type VARCHAR(15),
+    buy_date DATETIME NOT NULL,
     notes VARCHAR(300),
     created_on DATETIME NULL,
     updated_on DATETIME NULL,

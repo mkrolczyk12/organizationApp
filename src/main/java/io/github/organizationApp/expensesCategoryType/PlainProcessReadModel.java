@@ -5,7 +5,7 @@ import io.github.organizationApp.expensesProcess.Process;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class CategoryTypeProcessReadModel {
+public class PlainProcessReadModel {
     private BigDecimal price;
     private String currency;
     private LocalDateTime buy_date;
@@ -13,7 +13,7 @@ public class CategoryTypeProcessReadModel {
     private String transaction_type;
     private String notes;
 
-    CategoryTypeProcessReadModel (Process source) {
+    PlainProcessReadModel(Process source) {
         this.price = source.getPrice();
         this.currency = source.getCurrency();
         this.buy_date = source.getBuy_date();

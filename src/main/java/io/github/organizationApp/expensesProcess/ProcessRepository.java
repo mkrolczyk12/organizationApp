@@ -14,6 +14,10 @@ public interface ProcessRepository {
 
     List<Process> findAll();
     Page<Process> findAll(Pageable page);
+//    Optional<List<Process>> findProcessesBelongingToCategory(Integer categoryId);
+
+    Optional<List<Process>> findAllByCategory_Id(Integer id);
+    Optional<Page<Process>> findAllByCategory_Id(Pageable page, Integer id);
     Optional<Process> findById(Long id);
     boolean existsById(Long id);
 

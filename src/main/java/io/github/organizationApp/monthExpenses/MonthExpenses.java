@@ -17,15 +17,19 @@ public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     @NotBlank(message = "month type can't be null")
     private String month;
     private String description;
-    @OneToMany(cascade = CascadeType.ALL,mappedBy = "monthExpenses_id")
-    List<CategoryType> categories;
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "monthExpenses")
+    private List<CategoryType> categories;
     @ManyToOne
     @JoinColumn(name = "year_id")
-    private YearExpenses year_id;
+    private YearExpenses year;
     /**
      * Hibernate use it
      */
     public MonthExpenses() {
+    }
+    // dla testow
+    public MonthExpenses(String month) {
+        this.month = month;
     }
 
     public Integer getId() {return id;}
@@ -39,8 +43,8 @@ public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     public List<CategoryType> getCategories() {return categories;}
     public void setCategories(final List<CategoryType> categories) {this.categories = categories;}
 
-    public YearExpenses getYear_id() {return year_id;}
-    public void setYear_id(final YearExpenses year_id) {this.year_id = year_id;}
+    public YearExpenses getYear() {return year;}
+    public void setYear(final YearExpenses year) {this.year = year;}
 
     public void fullUpdate(MonthExpenses source) {
         this.month = source.month;

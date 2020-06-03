@@ -16,8 +16,8 @@ public class YearExpenses extends RepresentationModel<YearExpenses> {
     @NotBlank(message = "year type can't be null")
     private String year;
     private String description;
-    @OneToMany(cascade = CascadeType.ALL,mappedBy = "year_id")
-    List<MonthExpenses> months;
+    @OneToMany(mappedBy = "year")
+    private List<MonthExpenses> months;
 
     /**
      * Hibernate use it
@@ -27,8 +27,8 @@ public class YearExpenses extends RepresentationModel<YearExpenses> {
 
     public Integer getId() {return id;}
 
-    String getYear() {return year;}
-    void setYear(final String year) {this.year = year;}
+    public String getYear() {return year;}
+    public void setYear(final String year) {this.year = year;}
 
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}

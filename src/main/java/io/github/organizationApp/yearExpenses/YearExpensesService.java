@@ -41,9 +41,23 @@ public class YearExpensesService {
 
     Optional<YearExpenses> findById(final Integer id) {return repository.findById(id);}
 
-    boolean existsByYear(String year) {
+    public boolean existsByYear(String year) {
         return repository.existsByYear(year);
     }
+
+//    public YearExpenses findByYear(String year) {
+//        return repository.findByYear(year);
+//    }
+
+//    public Integer findByYearAndReturnYearId(String year) {
+//        try {
+//            YearExpenses result = repository.findByYear(year);
+//            return result.getId();
+//        } catch (NullPointerException e) {
+//            return 0;
+//        }
+//    }
+
     /**
      * Update
      */

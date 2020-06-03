@@ -1,5 +1,6 @@
 package io.github.organizationApp.monthExpenses;
 
+import io.github.organizationApp.yearExpenses.YearExpenses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -26,7 +27,7 @@ public class MonthExpensesService {
     /**
      * Create
      */
-    MonthExpenses save(final MonthExpenses month) {return repository.save(month);}
+    public MonthExpenses save(final MonthExpenses month) {return repository.save(month);}
     /**
      * Read
      */
@@ -42,8 +43,28 @@ public class MonthExpensesService {
         return repository.findById(id);
     }
 
-    boolean existsByMonth(String month) {
+    public MonthExpenses findByMonth(final String month) {
+        return repository.findByMonth(month);
+    }
+
+//    public MonthExpenses findByMonthAndBelongingYear(final String month, Integer yearId) {
+//        return repository.findByMonthAndYearId(month,yearId);
+//    }
+
+    public boolean existsByMonth(String month) {
         return repository.existsByMonth(month);
+    }
+
+    public MonthExpenses findByYearId(Integer yearId) {
+        return repository.findByYearId(yearId);
+    }
+
+    public boolean existsByYearId(Integer yearId) {
+        return repository.existsByYearId(yearId);
+    }
+
+    public boolean existsByMonthAndYearId(String month, Integer yearId) {
+        return repository.existsByMonthAndYearId(month,yearId);
     }
     /**
      * Update

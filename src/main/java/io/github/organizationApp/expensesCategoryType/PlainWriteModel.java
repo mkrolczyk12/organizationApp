@@ -4,15 +4,16 @@ import io.github.organizationApp.monthExpenses.MonthExpenses;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CategoryTypeWriteModel {
+public class PlainWriteModel {
     @NotBlank(message = "type can't be null")
     private String type;
     private String description;
     @Valid
-    private List<CategoryTypeProcessWriteModel> processes;
+    private List<PlainProcessWriteModel> processes = new ArrayList<>();
 
     public String getType() {return type;}
     public void setType(final String type) {this.type = type;}
@@ -20,8 +21,8 @@ public class CategoryTypeWriteModel {
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}
 
-    public List<CategoryTypeProcessWriteModel> getProcesses() {return processes;}
-    public void setProcesses(final List<CategoryTypeProcessWriteModel> processes) {this.processes = processes;}
+    public List<PlainProcessWriteModel> getProcesses() {return processes;}
+    public void setProcesses(final List<PlainProcessWriteModel> processes) {this.processes = processes;}
 
     public CategoryType toCategoryType(final MonthExpenses month) {
         var result = new CategoryType();
@@ -29,10 +30,10 @@ public class CategoryTypeWriteModel {
         result.setDescription(description);
         result.setProcesses(processes
                 .stream()
-                .map(CategoryTypeProcessWriteModel::toProcess)
+                .map(source -> source.toProcess(result))
                 .collect(Collectors.toList())
         );
-        result.setMonthExpenses_id(month);
+        result.setMonthExpenses(month);
         return result;
     }
 }

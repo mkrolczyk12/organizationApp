@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutionException;
 @Controller
 @GeneralExceptionsProcessing
 @RequestMapping("/process")
-class ProcessController {
+public class ProcessController {
     private static final Logger logger = LoggerFactory.getLogger(ProcessController.class);
     private final ProcessService service;
     private final ObjectMapper objectMapper;
@@ -92,7 +92,10 @@ class ProcessController {
     }
     @ResponseBody
     @GetMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<EntityModel<Process>> readProcess(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable Long id,
+                                                            @RequestParam(value = "year") String year,
+                                                            @RequestParam(value = "month") String month,
+                                                            @RequestParam(value = "category") String category) {
         return service.findById(id)
                 .map(process -> {
                     Link link1 = linkTo(ProcessController.class).slash(id).withSelfRel();

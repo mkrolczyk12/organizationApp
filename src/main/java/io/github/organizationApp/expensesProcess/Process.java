@@ -1,5 +1,6 @@
 package io.github.organizationApp.expensesProcess;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.organizationApp.expensesCategoryType.CategoryType;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.RepresentationModel;
@@ -12,19 +13,20 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "expenses_process")
+@JsonIgnoreProperties({"id","category"})
 public class Process extends RepresentationModel<Process> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotBlank(message = "description can't be null or empty")
+    private String description;
     @NotNull(message = "price can't be null or empty")
     private BigDecimal price;
     @NotBlank(message = "select currency")
     private String currency;
+    private String transaction_type;
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime buy_date;
-    @NotBlank(message = "description can't be null or empty")
-    private String description;
-    private String transaction_type;
     private String notes;
 
     /**
@@ -32,7 +34,7 @@ public class Process extends RepresentationModel<Process> {
      */
     @ManyToOne
     @JoinColumn(name = "category_id")
-    private CategoryType category_id;
+    private CategoryType category;
 
     /**
      * embedded table
@@ -43,45 +45,18 @@ public class Process extends RepresentationModel<Process> {
     /**
      * Hibernate use it
      */
-    Process() {
+    public Process() {
     }
 
-    public Process(BigDecimal price, String currency, LocalDateTime buy_date) {
-        this.price = price;
-        this.currency = currency;
-        this.buy_date = buy_date;
-        this.description = "";
-        this.transaction_type = "";
-        this.notes = "";
-    }
-
-    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description) {
-        this.price = price;
-        this.currency = currency;
-        this.buy_date = buy_date;
-        this.description = description;
-        this.transaction_type = "";
-        this.notes = "";
-    }
-
-    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description,String transaction_type) {
-        this.price = price;
-        this.currency = currency;
-        this.buy_date = buy_date;
-        this.description = description;
-        this.transaction_type = transaction_type;
-        this.notes = "";
-    }
-
-    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description,String transaction_type,String notes) {
+    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description,String transaction_type,String notes, CategoryType categoryType) {
         this.price = price;
         this.currency = currency;
         this.buy_date = buy_date;
         this.description = description;
         this.transaction_type = transaction_type;
         this.notes = notes;
+        this.category = categoryType;
     }
-
 
     public Long getId() {return id;}
 
@@ -103,8 +78,8 @@ public class Process extends RepresentationModel<Process> {
     public String getNotes() {return notes;}
     public void setNotes(final String notes) {this.notes = notes;}
 
-    public CategoryType getCategory_id() {return category_id;}
-    public void setCategory_id(final CategoryType category_id) {this.category_id = category_id;}
+    public CategoryType getCategory() {return category;}
+    public void setCategory(final CategoryType category) {this.category = category;}
 
     public void fullUpdate(Process toUpdate){
         this.price = toUpdate.price;
@@ -115,3 +90,4 @@ public class Process extends RepresentationModel<Process> {
         this.notes = toUpdate.notes;
     }
 }
+

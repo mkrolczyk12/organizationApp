@@ -1,5 +1,6 @@
 package io.github.organizationApp.expensesCategoryType;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.organizationApp.expensesProcess.Process;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 import org.springframework.hateoas.RepresentationModel;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "expenses_category")
+@JsonIgnoreProperties({"id","monthExpenses"})
 public class CategoryType extends RepresentationModel<CategoryType> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,11 +23,11 @@ public class CategoryType extends RepresentationModel<CategoryType> {
     /**
      * OneToMany relation with Process class
      */
-    @OneToMany(cascade = CascadeType.ALL,mappedBy = "category_id")
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "category")
     private List<Process> processes;
     @ManyToOne
     @JoinColumn(name = "month_id")
-    private MonthExpenses monthExpenses_id;
+    private MonthExpenses monthExpenses;
 
     /**
      * Hibernate use it
@@ -49,8 +51,8 @@ public class CategoryType extends RepresentationModel<CategoryType> {
     public List<Process> getProcesses() {return processes;}
     public void setProcesses(final List<Process> processes) {this.processes = processes;}
 
-    public MonthExpenses getMonthExpenses_id() {return monthExpenses_id;}
-    public void setMonthExpenses_id(final MonthExpenses monthExpenses_id) {this.monthExpenses_id = monthExpenses_id;}
+    public MonthExpenses getMonthExpenses() {return monthExpenses;}
+    public void setMonthExpenses(final MonthExpenses monthExpenses) {this.monthExpenses = monthExpenses;}
 
     void fullUpdate(final CategoryType toUpdate) {
         this.type = toUpdate.type;

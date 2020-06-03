@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class CategoryTypeProcessWriteModel {
+public class PlainProcessWriteModel {
     @NotNull(message = "price can't be null or empty")
     private BigDecimal price;
     @NotBlank(message = "select currency")
@@ -38,7 +38,7 @@ public class CategoryTypeProcessWriteModel {
     public String getNotes() {return notes;}
     public void setNotes(final String notes) {this.notes = notes;}
 
-    public Process toProcess() {
-        return new Process(price,currency,buy_date,description,transaction_type,notes);
+    public Process toProcess(final CategoryType categoryType) {
+        return new Process(price,currency,buy_date,description,transaction_type,notes, categoryType);
     }
 }
