@@ -5,6 +5,7 @@ import io.github.organizationApp.expensesProcess.ProcessController;
 import io.github.organizationApp.expensesProcess.ProcessRepository;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 import io.github.organizationApp.monthExpenses.MonthExpensesRepository;
+import io.github.organizationApp.yearExpenses.YearExpenses;
 import io.github.organizationApp.yearExpenses.YearExpensesRepository;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
@@ -61,22 +62,39 @@ public class CategoryTypeService {
         return new PlainReadModel(result);
     }
 
-    List<PlainReadModel> findAll() {
-            List<CategoryType> categories = repository.findAll();
-            return categories
-                        .stream()
-                        .map(PlainReadModel::new)
-                        .collect(Collectors.toList());
+    List<PlainReadModel> findAllByMonthExpensesId(final String year, final String month) throws NotFoundException {
+        // TODO nie sprawdzone (wstepnie dziala ale przetestowac pozniej i podane yearId = null)
+//        Integer yearId  = yearRepository.findByYear(year)
+//                .map(result -> result.getId())
+//                .orElseThrow(() -> new NotFoundException("no year with given parameter"));
+        Integer yearId = null;
+        return monthRepository.findByMonthAndYearId(month, yearId)
+                .map(Month -> {
+                        return Month.getCategories()
+                            .stream()
+                            .map(PlainReadModel::new)
+                            .collect(Collectors.toList());
+                })
+                .orElseThrow(() -> new NotFoundException("no month with given parameter"));
     }
 
-    Page<PlainReadModel> findAll(Pageable page) {
-            Page<CategoryType> paged_categories = repository.findAll(page);
-            List<PlainReadModel> items = paged_categories.toList()
-                .stream()
-                .map(PlainReadModel::new)
-                .collect(Collectors.toList());
-
-            return new PageImpl(items);
+    Page<PlainReadModel> findAllByMonthExpensesId(final Pageable page, final String year, final String month) throws NotFoundException {
+        // TODO nie sprawdzone (wstepnie dziala ale przetestowac pozniej i podane yearId = null)
+//        Integer yearId  = yearRepository.findByYear(year)
+//                .map(result -> result.getId())
+//                .orElseThrow(() -> new NotFoundException("no year with given parameter"));
+        Integer yearId = null;
+        return monthRepository.findByMonthAndYearId(month, yearId)
+                .map(Month -> {
+                    var monthId = Month.getId();
+                    Page<CategoryType> paged_categories = repository.findAllByMonthExpensesId(page,monthId);
+                    List<PlainReadModel> items = paged_categories.toList()
+                            .stream()
+                            .map(PlainReadModel::new)
+                            .collect(Collectors.toList());
+                    return new PageImpl<>(items);
+                })
+                .orElseThrow(() -> new NotFoundException("no month with given parameter"));
         }
 
     public List<Process> findAllProcessesBelongToCategory(Integer Id) throws NotFoundException {
@@ -117,7 +135,7 @@ public class CategoryTypeService {
      * @param month - param 'month' given in URL
      * @return true or false
      */
-    boolean categoryTypeLevelValidationSuccess(String year, String month) {
+    boolean categoryTypeLevelValidationSuccess(final String year, final String month) {
         try {
             return yearRepository.findByYear(year)
                     .map(result -> {
@@ -145,19 +163,18 @@ public class CategoryTypeService {
                                                             final String month,
                                                             final boolean PAGEABLE_PARAM_CHOSEN) {
 
-        categories.forEach(category -> category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, month)).withRel("allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
-        Link link1 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("?{processes} -> req. to POST category with processes");
-        Link link2 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withSelfRel();
-        Link link3 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("categories?{sort,size,page}");
+        categories.forEach(category -> category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, month)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
+        Link link1 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withSelfRel();
+        Link link2 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("category?{sort,size,page}");
+        Link link3 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("?{processes} -> required parameter to POST category with processes");
         // TODO - > zamienic link4 oraz 5 na link do konkretnego miesiaca (tego z którego przeszedlem do danej kategorii)
-        Link link4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("month_categories");
-        Link link5 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("month_categories?{sort,size,page}");
+        Link link4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("month");
 
         if(PAGEABLE_PARAM_CHOSEN) {
             var pagedCategories = new PageImpl<>(categories);
-            return new CollectionModel(pagedCategories, link1, link2, link3, link4, link5);
+            return new CollectionModel(pagedCategories, link1, link2, link3, link4);
         } else {
-            return new CollectionModel(categories, link1, link2, link3, link4, link5);
+            return new CollectionModel(categories, link1, link2, link3, link4);
         }
     }
 

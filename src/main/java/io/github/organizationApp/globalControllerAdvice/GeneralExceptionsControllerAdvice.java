@@ -2,6 +2,7 @@ package io.github.organizationApp.globalControllerAdvice;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -80,6 +81,11 @@ public class GeneralExceptionsControllerAdvice {
     @ExceptionHandler(ClassCastException.class)
     public ResponseEntity<?> handleClassCast(final ClassCastException e) {
         logger.warn("captured ClassCastException: request body validation failed");
+        return ResponseEntity.badRequest().build();
+    }
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<?> handlePropertyReference(final PropertyReferenceException e) {
+        logger.warn("captured PropertyReferenceException: invalid " + e.getPropertyName() + " property");
         return ResponseEntity.badRequest().build();
     }
 }

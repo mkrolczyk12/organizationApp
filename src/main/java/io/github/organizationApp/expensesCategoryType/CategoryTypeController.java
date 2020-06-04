@@ -113,12 +113,13 @@ public class CategoryTypeController {
 //        }
         try {
             final boolean PAGEABLE_PARAM_FLAG = false;
-            List<PlainReadModel> result = service.findAll();
+            // TODO zmienic na wyszukiwanie wszystkich z konkretnego miesiaca
+            List<PlainReadModel> result = service.findAllByMonthExpensesId(YEAR_PARAM, MONTH_PARAM);
             CollectionModel<?> categoryTypeCollection = service.prepareReadEmptyCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG);
 
             logger.info("exposing all categories!");
             return ResponseEntity.ok(categoryTypeCollection);
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | NotFoundException e) {
             logger.info("no categories");
             return ResponseEntity.noContent().build();
         }
@@ -129,20 +130,21 @@ public class CategoryTypeController {
                                             @RequestParam(value = "year") final String YEAR_PARAM,
                                             @RequestParam(value = "month") final String MONTH_PARAM) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-            logger.info("category level validation failed, no relation between given year and month");
-            return ResponseEntity.badRequest().build();
-        }
+//        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+//            logger.info("category level validation failed, no relation between given year and month");
+//            return ResponseEntity.badRequest().build();
+//        }
         try {
             final boolean PAGEABLE_PARAM_FLAG = true;
-            List<PlainReadModel> result = service.findAll(page).toList();
+            // TODO zmienic na wyszukiwanie wszystkich z konkretnego miesiaca
+            List<PlainReadModel> result = service.findAllByMonthExpensesId(page, YEAR_PARAM, MONTH_PARAM).toList();
             CollectionModel<?> categoryTypeCollection = service.prepareReadEmptyCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG);
 
             logger.info("exposing all categories!");
             return ResponseEntity.ok(categoryTypeCollection);
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | NotFoundException e) {
             logger.info("no categories");
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok().build();
         }
     }
     @ResponseBody

@@ -45,8 +45,8 @@ public class ProcessController {
      */
     @Timed(value = "controller.process.readProcesses", histogram = true, percentiles = {0.5,0.95,0.99})
     @ResponseBody
-    @GetMapping(params = {"plain","!sort","!size","!page"},consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<?> readProcesses() {
+    @GetMapping(params = {"all","!sort","!size","!page"},consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> readProcesses(@RequestParam(value = "all") final String ALL_PARAM) {
         final boolean PAGEABLE_PARAM_FLAG = false;
         try {
             logger.info("starting process async finding");
@@ -67,8 +67,10 @@ public class ProcessController {
     }
     @Timed(value = "controller.process.readProcesses(+Pageable param)", histogram = true, percentiles = {0.5,0.95,0.99})
     @ResponseBody
-    @GetMapping(params = "plain", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<?> readProcesses(Pageable page) {
+    @GetMapping(params = "all", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<?> readProcesses(Pageable page,
+                                    @RequestParam(value = "all") final String ALL_PARAM) {
+
         final boolean PAGEABLE_PARAM_FLAG = true;
         try {
             logger.info("starting process async finding");
@@ -87,25 +89,26 @@ public class ProcessController {
             return ResponseEntity.ok(processCollection);
         }
     }
-    @ResponseBody
-    @GetMapping(path = "/{id}", params = "plain", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable final Long id) {
-
-//        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
-//            logger.info("process level validation failed, no relation between given year, month and category");
-//            return ResponseEntity.badRequest().build();
-//        }
-        return service.findById(id)
-                .map(process -> {
-                    process.add(linkTo(methodOn(ProcessController.class).readProcess(id)).withRel("allowed_queries: GET"));
-                    Link link1 = linkTo(methodOn(ProcessController.class).readProcesses()).withRel("all_processes");
-                    Link link2 = linkTo(methodOn(ProcessController.class).readProcesses()).withRel("all_processes?{sort,size,page}");
-                    EntityModel<Process> processModel = new EntityModel(process,link1, link2);
-                    logger.info("exposing process with id = " + id);
-                    return ResponseEntity.ok(processModel);
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
+//    @ResponseBody
+//    @GetMapping(path = "/{id}", params = "plain", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable final Long id,
+//                                                            @RequestParam(value = "plain") final String PLAIN_PARAM) {
+//
+////        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
+////            logger.info("process level validation failed, no relation between given year, month and category");
+////            return ResponseEntity.badRequest().build();
+////        }
+//        return service.findById(id)
+//                .map(process -> {
+//                    process.add(linkTo(methodOn(ProcessController.class).readProcess(id, PLAIN_PARAM)).withRel("allowed_queries: GET"));
+//                    Link link1 = linkTo(methodOn(ProcessController.class).readProcesses(PLAIN_PARAM)).withRel("all_processes");
+//                    Link link2 = linkTo(methodOn(ProcessController.class).readProcesses(PLAIN_PARAM)).withRel("all_processes?{sort,size,page}");
+//                    EntityModel<Process> processModel = new EntityModel(process,link1, link2);
+//                    logger.info("exposing process with id = " + id);
+//                    return ResponseEntity.ok(processModel);
+//                })
+//                .orElse(ResponseEntity.notFound().build());
+//    }
     @ResponseBody
     @GetMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable final Long id,
@@ -120,8 +123,8 @@ public class ProcessController {
         return service.findById(id)
                 .map(process -> {
                     process.add(linkTo(methodOn(ProcessController.class).readProcess(id, YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)).withRel("allowed_queries: GET,PUT,PATCH,DELETE"));
-                    Link link1 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(process.getCategory().getId(), YEAR_PARAM, MONTH_PARAM)).withRel("category_processes");
-                    Link link2 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(process.getCategory().getId(), YEAR_PARAM, MONTH_PARAM)).withRel("category_processes?{sort,size,page}");
+                    Link link1 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(process.getCategory().getId(), YEAR_PARAM, MONTH_PARAM)).withRel("chosen_category_processes");
+                    Link link2 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(process.getCategory().getId(), YEAR_PARAM, MONTH_PARAM)).withRel("chosen_category_processes?{sort,size,page}");
                     Link link3 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(YEAR_PARAM, MONTH_PARAM)).withRel("categories");
                     Link link4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(YEAR_PARAM, MONTH_PARAM)).withRel("categories?{sort,size,page}");
 
