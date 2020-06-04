@@ -2,16 +2,13 @@ package io.github.organizationApp.globalControllerAdvice;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.*;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolationException;
@@ -30,16 +27,16 @@ public class GeneralExceptionsControllerAdvice {
         logger.warn("captured handleNullPointerException");
         return ResponseEntity.notFound().build();
     }
-//    @ExceptionHandler(IllegalStateException.class)
-//    public ResponseEntity<?> handleIllegalState(IllegalStateException e) {
-//        logger.warn("captured handleIllegalStateException");
-//        return ResponseEntity.badRequest().build();
-//    }
-//    @ExceptionHandler(ConstraintViolationException.class)
-//    public ResponseEntity<?> handleConstraintViolation(ConstraintViolationException e) {
-//        logger.warn("captured ConstraintViolationException");
-//        return ResponseEntity.badRequest().build();
-//    }
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<?> handleIllegalState(IllegalStateException e) {
+        logger.warn("captured handleIllegalStateException");
+        return ResponseEntity.badRequest().build();
+    }
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<?> handleConstraintViolation(ConstraintViolationException e) {
+        logger.warn("captured ConstraintViolationException");
+        return ResponseEntity.badRequest().build();
+    }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
         logger.warn("captured HttpMessageNotReadableException");
@@ -78,6 +75,11 @@ public class GeneralExceptionsControllerAdvice {
     @ExceptionHandler(MissingPathVariableException.class)
     public ResponseEntity<?> handleMissingPathVariable(final MissingPathVariableException e) {
         logger.warn("captured MissingPathVariableException: Missing URI template variable '"+ e.getVariableName() + "' method parameter");
+        return ResponseEntity.badRequest().build();
+    }
+    @ExceptionHandler(ClassCastException.class)
+    public ResponseEntity<?> handleClassCast(final ClassCastException e) {
+        logger.warn("captured ClassCastException: request body validation failed");
         return ResponseEntity.badRequest().build();
     }
 }

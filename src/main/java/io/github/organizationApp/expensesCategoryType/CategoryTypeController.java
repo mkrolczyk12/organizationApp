@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -24,7 +25,7 @@ import java.util.List;
 @Controller
 @GeneralExceptionsProcessing
 @RequestMapping("/category")
-class CategoryTypeController {
+public class CategoryTypeController {
     private static final Logger logger = LoggerFactory.getLogger(CategoryTypeController.class);
     private final CategoryTypeService service;
     private final ObjectMapper objectMapper;
@@ -39,32 +40,33 @@ class CategoryTypeController {
      */
     @Transactional
     @ResponseBody
-    @PostMapping(params = "empty", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<CategoryType> addEmptyCategoryType(@RequestParam(value = "year") String YEAR_PARAM,
-                                                      @RequestParam(value = "month") String MONTH_PARAM,
-                                                      @RequestBody @Valid CategoryType toCategory) {
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<CategoryType> addEmptyCategoryType(@RequestParam(value = "year") final String YEAR_PARAM,
+                                                      @RequestParam(value = "month") final String MONTH_PARAM,
+                                                      @RequestBody @Valid final CategoryType toCategory) {
+
 //        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-//            logger.info("no relation between given year and month, can't continue");
+//            logger.info("category level validation failed, no relation between given year and month");
 //            return ResponseEntity.badRequest().build();
 //        }
         try {
             CategoryType result = service.save(toCategory);
             logger.info("posted new empty category type with id = "+result.getId());
             return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             logger.info("an error occured while posting category type");
             return ResponseEntity.notFound().build();
         }
     }
     @Transactional
     @ResponseBody
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<PlainReadModel> addCategoryTypeWithProcesses(@RequestParam(value = "year") String YEAR_PARAM,
-                                                                @RequestParam(value = "month") String MONTH_PARAM,
-                                                                @RequestBody @Valid PlainWriteModel toCategory) {
+    @PostMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<PlainReadModel> addCategoryTypeWithProcesses(@RequestParam(value = "year") final String YEAR_PARAM,
+                                                                @RequestParam(value = "month") final String MONTH_PARAM,
+                                                                @RequestBody @Valid final PlainWriteModel toCategory) {
 
 //        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-//            logger.info("no relation between given year and month, can't continue");
+//            logger.info("category level validation failed, no relation between given year and month");
 //            return ResponseEntity.badRequest().build();
 //        }
         try {
@@ -77,13 +79,36 @@ class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
+    @Transactional
+    @ResponseBody
+    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Process> addProcessToChosenCategory(@PathVariable final Integer id,
+                                                              @RequestParam(value = "year") final String YEAR_PARAM,
+                                                              @RequestParam(value = "month") final String MONTH_PARAM,
+                                                              @RequestBody @Valid final Process toProcess) {
+
+        if(!(service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM) && service.existsById(id))) {
+            logger.info("category level validation failed, no relation between given year, month and category id");
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            service.setCategoryToNewProcess(id, toProcess);
+            Process result = service.addProcess(toProcess);
+
+            logger.info("posted new process to category with id = " + id);
+            return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
+        } catch (NotFoundException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
     @ResponseBody
     @GetMapping(params = {"!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<?> readEmptyCategoryTypes(@RequestParam(value = "year") String YEAR_PARAM,
-                                              @RequestParam(value = "month") String MONTH_PARAM) {
+    public ResponseEntity<?> readEmptyCategoryTypes(@RequestParam(value = "year") final String YEAR_PARAM,
+                                                    @RequestParam(value = "month") final String MONTH_PARAM) {
 
 //        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-//            logger.info("no relation between given year and month, can't continue");
+//            logger.info("category level validation failed, no relation between given year and month");
 //            return ResponseEntity.badRequest().build();
 //        }
         try {
@@ -101,11 +126,11 @@ class CategoryTypeController {
     @ResponseBody
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyCategoryTypes(Pageable page,
-                                            @RequestParam(value = "year") String YEAR_PARAM,
-                                            @RequestParam(value = "month") String MONTH_PARAM) {
+                                            @RequestParam(value = "year") final String YEAR_PARAM,
+                                            @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-            logger.info("no relation between given year and month, can't continue");
+            logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -122,12 +147,12 @@ class CategoryTypeController {
     }
     @ResponseBody
     @GetMapping(value = "/{id}", params = {"!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<?> readOneCategoryTypeContent(@PathVariable Integer id,
-                                                                        @RequestParam(value = "year") String YEAR_PARAM,
-                                                                        @RequestParam(value = "month") String MONTH_PARAM) {
+    public ResponseEntity<?> readOneCategoryTypeContent(@PathVariable final Integer id,
+                                                        @RequestParam(value = "year") final String YEAR_PARAM,
+                                                        @RequestParam(value = "month") final String MONTH_PARAM) {
 
 //        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-//            logger.info("no relation between given year and month, can't continue");
+//            logger.info("category level validation failed, no relation between given year and month");
 //            return ResponseEntity.badRequest().build();
 //        }
         try {
@@ -146,12 +171,12 @@ class CategoryTypeController {
     @ResponseBody
     @GetMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneCategoryTypeContent(Pageable page,
-                                                 @PathVariable Integer id,
-                                                 @RequestParam(value = "year") String YEAR_PARAM,
-                                                 @RequestParam(value = "month") String MONTH_PARAM) {
+                                                 @PathVariable final Integer id,
+                                                 @RequestParam(value = "year") final String YEAR_PARAM,
+                                                 @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-            logger.info("no relation between given year and month, can't continue");
+            logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -170,13 +195,13 @@ class CategoryTypeController {
     @Transactional
     @ResponseBody
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Object> fullUpdateCategoryType(@PathVariable Integer id,
-                                                  @RequestParam(value = "year") String YEAR_PARAM,
-                                                  @RequestParam(value = "month") String MONTH_PARAM,
-                                                  @RequestBody @Valid CategoryType toUpdate) {
+    ResponseEntity<Object> fullUpdateCategoryType(@PathVariable final Integer id,
+                                                  @RequestParam(value = "year") final String YEAR_PARAM,
+                                                  @RequestParam(value = "month") final String MONTH_PARAM,
+                                                  @RequestBody @Valid final CategoryType toUpdate) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-            logger.info("no relation between given year and month, can't continue");
+            logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -186,7 +211,7 @@ class CategoryTypeController {
             logger.info("put category type with id = "+ id);
             return ResponseEntity.ok().build();
 
-        } catch (Exception e) {
+        } catch (NotFoundException e) {
             logger.info("an error occured while put category type");
             return ResponseEntity.badRequest().build();
         }
@@ -194,13 +219,13 @@ class CategoryTypeController {
     @Transactional
     @ResponseBody
     @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> partUpdateCategoryType(@PathVariable Integer id,
-                                                         @RequestParam(value = "year") String YEAR_PARAM,
-                                                         @RequestParam(value = "month") String MONTH_PARAM,
-                                                         @Valid HttpServletRequest request) {
+    public ResponseEntity<Object> partUpdateCategoryType(@PathVariable final Integer id,
+                                                         @RequestParam(value = "year") final String YEAR_PARAM,
+                                                         @RequestParam(value = "month") final String MONTH_PARAM,
+                                                         @Valid final HttpServletRequest request) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
-            logger.info("no relation between given year and month, can't continue");
+            logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
         try {
@@ -212,7 +237,7 @@ class CategoryTypeController {
             service.saveAndFlush(updatedCategoryType);
             logger.info("succesfully patched category type nr "+id);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        } catch (NotFoundException | IOException e) {
             logger.info("an error occured while patching category type");
             return ResponseEntity.badRequest().build();
         }
@@ -220,11 +245,11 @@ class CategoryTypeController {
     @Transactional
     @ResponseBody
     @DeleteMapping@PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Object> deleteCategoryType(@PathVariable Integer id,
-                                              @RequestParam(value = "year") String YEAR_PARAM,
-                                              @RequestParam(value = "month") String MONTH_PARAM) {
+    ResponseEntity<Object> deleteCategoryType(@PathVariable final Integer id,
+                                              @RequestParam(value = "year") final String YEAR_PARAM,
+                                              @RequestParam(value = "month") final String MONTH_PARAM) {
         if(!(service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM) && service.existsById(id))) {
-            logger.info("no relation between given year month and category id, can't continue");
+            logger.info("category level validation failed, no relation between given year, month and category id");
             return ResponseEntity.badRequest().build();
         }
         service.deleteCategoryType(id);

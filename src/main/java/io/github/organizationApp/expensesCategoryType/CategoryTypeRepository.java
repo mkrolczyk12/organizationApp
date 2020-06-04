@@ -14,9 +14,10 @@ public interface CategoryTypeRepository {
     Page<CategoryType> findAll(Pageable page);
     Optional<List<CategoryType>> findAllByMonthExpensesId(Integer id);
     Optional<CategoryType> findById(final Integer id);
-    CategoryType existsByType(String type);
+
+    boolean existsByTypeAndMonthExpenses_Id(String category, Integer monthId);
     boolean existsById(Integer id);
-    Boolean existsAllByTypeIsIn(List<String> def_types);
+    CategoryType existsByType(String type);
 
     CategoryType saveAndFlush(final CategoryType updatedCategoryType);
 
