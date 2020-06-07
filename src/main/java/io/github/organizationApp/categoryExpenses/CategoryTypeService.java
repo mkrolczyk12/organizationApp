@@ -1,11 +1,10 @@
-package io.github.organizationApp.expensesCategoryType;
+package io.github.organizationApp.categoryExpenses;
 
 import io.github.organizationApp.expensesProcess.Process;
 import io.github.organizationApp.expensesProcess.ProcessController;
 import io.github.organizationApp.expensesProcess.ProcessRepository;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 import io.github.organizationApp.monthExpenses.MonthExpensesRepository;
-import io.github.organizationApp.yearExpenses.YearExpenses;
 import io.github.organizationApp.yearExpenses.YearExpensesRepository;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
@@ -15,9 +14,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +27,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
-public class CategoryTypeService {
+class CategoryTypeService {
     private static final Logger logger = LoggerFactory.getLogger(CategoryTypeService.class);
     private final YearExpensesRepository yearRepository;
     private final MonthExpensesRepository monthRepository;
@@ -56,13 +58,13 @@ public class CategoryTypeService {
         toProcess.setCategory(category);
     }
 
-    PlainReadModel createCategoryWithProcesses(final MonthExpenses month, final PlainWriteModel source) {
+    CategoryFullReadModel createCategoryWithProcesses(final MonthExpenses month, final CategoryFullWriteModel source) {
         CategoryType result = repository.save(source.toCategoryType(month));
 
-        return new PlainReadModel(result);
+        return new CategoryFullReadModel(result);
     }
 
-    List<PlainReadModel> findAllByMonthExpensesId(final String year, final String month) throws NotFoundException {
+    List<?> findAllByMonthExpensesId(final String year, final String month, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
         // TODO nie sprawdzone (wstepnie dziala ale przetestowac pozniej i podane yearId = null)
 //        Integer yearId  = yearRepository.findByYear(year)
 //                .map(result -> result.getId())
@@ -70,15 +72,16 @@ public class CategoryTypeService {
         Integer yearId = null;
         return monthRepository.findByMonthAndYearId(month, yearId)
                 .map(Month -> {
+                        System.out.println(Month.getCategories());
                         return Month.getCategories()
                             .stream()
-                            .map(PlainReadModel::new)
+                            .map(PROCESSES_FLAG_CHOSEN == true ? CategoryFullReadModel::new : CategoryNoProcessesReadModel::new)
                             .collect(Collectors.toList());
                 })
                 .orElseThrow(() -> new NotFoundException("no month with given parameter"));
     }
 
-    Page<PlainReadModel> findAllByMonthExpensesId(final Pageable page, final String year, final String month) throws NotFoundException {
+    Page<?> findAllByMonthExpensesId(final Pageable page, final String year, final String month, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
         // TODO nie sprawdzone (wstepnie dziala ale przetestowac pozniej i podane yearId = null)
 //        Integer yearId  = yearRepository.findByYear(year)
 //                .map(result -> result.getId())
@@ -88,9 +91,9 @@ public class CategoryTypeService {
                 .map(Month -> {
                     var monthId = Month.getId();
                     Page<CategoryType> paged_categories = repository.findAllByMonthExpensesId(page,monthId);
-                    List<PlainReadModel> items = paged_categories.toList()
+                    List<?> items = paged_categories.toList()
                             .stream()
-                            .map(PlainReadModel::new)
+                            .map(PROCESSES_FLAG_CHOSEN == true ? CategoryFullReadModel::new : CategoryNoProcessesReadModel::new)
                             .collect(Collectors.toList());
                     return new PageImpl<>(items);
                 })
@@ -114,7 +117,7 @@ public class CategoryTypeService {
 
     MonthExpenses findByMonthAndBelongingYear(String YEAR_PARAM, String MONTH_PARAM) throws NotFoundException {
         return monthRepository.findByMonthAndYearId(MONTH_PARAM, yearRepository.findByYear(YEAR_PARAM).get().getId())
-                .orElseThrow(() -> new NotFoundException(""));
+                .orElseThrow(() -> new NotFoundException("no month founded"));
     }
 
     boolean existsById(Integer id) {
@@ -152,29 +155,55 @@ public class CategoryTypeService {
 
     /**
      *
-     * @param categories - List of categories
+     * @param unknownCategories - List of categories
      * @param year - String param 'year' given in URL
      * @param month - String param 'month' given in URL
      * @param PAGEABLE_PARAM_CHOSEN - Boolean param checks if any Page param is given in URL
      * @return - CollectionModel<PagedModel<PlainReadModel>> or CollectionModel<PlainReadModel>
      */
-    CollectionModel<?> prepareReadEmptyCategoryTypesHateoas(final List<PlainReadModel> categories,
+    CollectionModel<?> prepareReadCategoryTypesHateoas(final List<?> unknownCategories,
                                                             final String year,
                                                             final String month,
-                                                            final boolean PAGEABLE_PARAM_CHOSEN) {
+                                                            final boolean PAGEABLE_PARAM_CHOSEN,
+                                                            final boolean PROCESSES_FLAG_CHOSEN) {
 
-        categories.forEach(category -> category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, month)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
-        Link link1 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withSelfRel();
-        Link link2 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("category?{sort,size,page}");
-        Link link3 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("?{processes} -> required parameter to POST category with processes");
+        final Link href1 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withSelfRel();
+        final Link href2 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("category?{sort,size,page}");
+        final Link href3 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("?{processes} -> required parameter to POST category with processes");
+        final Link href4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("?{processes} -> required parameter to GET categories with all processes");
         // TODO - > zamienic link4 oraz 5 na link do konkretnego miesiaca (tego z którego przeszedlem do danej kategorii)
-        Link link4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("month");
+        final Link href5 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("month");
 
-        if(PAGEABLE_PARAM_CHOSEN) {
-            var pagedCategories = new PageImpl<>(categories);
-            return new CollectionModel(pagedCategories, link1, link2, link3, link4);
-        } else {
-            return new CollectionModel(categories, link1, link2, link3, link4);
+
+
+        if(PROCESSES_FLAG_CHOSEN) {
+            List<CategoryFullReadModel> categories = (List<CategoryFullReadModel>) unknownCategories;
+
+            categories.forEach(Category -> {
+                List<CategoryProcessReadModel> processes = Category.getProcesses();
+                final String category = Category.getType();
+                processes.forEach(process -> process.add(linkTo(methodOn(ProcessController.class).readProcess(process.getId(), year, month, category)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}")));
+                Category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(Category.getId(), year, month)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+            });
+
+            if(PAGEABLE_PARAM_CHOSEN) {
+                var pagedCategories = new PageImpl<>(categories);
+                return new CollectionModel(pagedCategories, href1, href2, href3, href4, href5);
+            } else {
+                return new CollectionModel(categories, href1, href2, href3, href4, href5);
+            }
+        }
+        else {
+            List<CategoryNoProcessesReadModel> categories = (List<CategoryNoProcessesReadModel>) unknownCategories;
+
+            categories.forEach(category -> category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, month)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
+
+            if(PAGEABLE_PARAM_CHOSEN) {
+                var pagedCategories = new PageImpl<>(categories);
+                return new CollectionModel(pagedCategories, href1, href2, href3, href4, href5);
+            } else {
+                return new CollectionModel(categories, href1, href2, href3, href4, href5);
+            }
         }
     }
 
@@ -195,18 +224,18 @@ public class CategoryTypeService {
 
         processes.forEach(process -> process.add(linkTo(methodOn(ProcessController.class).readProcess(process.getId(), year, month, category)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}")));
         final Integer categoryId = processes.get(0).getCategory().getId();
-        Link link1 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(categoryId, year, month)).withSelfRel();
-        Link link2 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(categoryId, year, month)).withRel("POST_process");
-        Link link3 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(categoryId, year, month)).withRel("?{sort,size,page}");
-        Link link4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("categories");
-        Link link5 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("categories?{sort,size,page}");
+        final Link href1 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(categoryId, year, month)).withSelfRel();
+        final Link href2 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(categoryId, year, month)).withRel("POST_process");
+        final Link href3 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(categoryId, year, month)).withRel("?{sort,size,page}");
+        final Link href4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("categories");
+        final Link href5 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withRel("categories?{sort,size,page}");
 
         if(PAGEABLE_PARAM_CHOSEN) {
             var pagedProcesses = new PageImpl<>(processes);
-            return new CollectionModel(pagedProcesses, link1, link2, link3, link4,link5);
+            return new CollectionModel(pagedProcesses, href1, href2, href3, href4, href5);
 
         } else {
-            return new CollectionModel(processes, link1, link2, link3, link4,link5);
+            return new CollectionModel(processes, href1, href2, href3, href4, href5);
         }
     }
 }

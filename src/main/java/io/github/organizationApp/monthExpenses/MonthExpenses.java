@@ -1,6 +1,7 @@
 package io.github.organizationApp.monthExpenses;
 
-import io.github.organizationApp.expensesCategoryType.CategoryType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.organizationApp.categoryExpenses.CategoryType;
 import io.github.organizationApp.yearExpenses.YearExpenses;
 import org.springframework.hateoas.RepresentationModel;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "month_expenses")
+@JsonIgnoreProperties({"id", "year", "categories"})
 public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,10 +28,6 @@ public class MonthExpenses extends RepresentationModel<MonthExpenses> {
      * Hibernate use it
      */
     public MonthExpenses() {
-    }
-    // dla testow
-    public MonthExpenses(String month) {
-        this.month = month;
     }
 
     public Integer getId() {return id;}

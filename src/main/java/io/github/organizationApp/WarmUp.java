@@ -1,6 +1,6 @@
 package io.github.organizationApp;
 
-import io.github.organizationApp.expensesCategoryType.CategoryTypeRepository;
+import io.github.organizationApp.categoryExpenses.CategoryTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;

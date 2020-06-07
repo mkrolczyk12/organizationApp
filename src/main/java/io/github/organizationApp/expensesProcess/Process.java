@@ -1,7 +1,7 @@
 package io.github.organizationApp.expensesProcess;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.github.organizationApp.expensesCategoryType.CategoryType;
+import io.github.organizationApp.categoryExpenses.CategoryType;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.hateoas.RepresentationModel;
 

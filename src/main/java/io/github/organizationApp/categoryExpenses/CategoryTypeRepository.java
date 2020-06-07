@@ -1,4 +1,4 @@
-package io.github.organizationApp.expensesCategoryType;
+package io.github.organizationApp.categoryExpenses;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

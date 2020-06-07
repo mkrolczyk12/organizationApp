@@ -1,24 +1,32 @@
-package io.github.organizationApp.expensesCategoryType;
+package io.github.organizationApp.categoryExpenses;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.organizationApp.expensesProcess.Process;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.hateoas.RepresentationModel;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-public class PlainProcessWriteModel {
-    @NotNull(message = "price can't be null or empty")
+@JsonIgnoreProperties({"id"})
+class CategoryProcessReadModel extends RepresentationModel<CategoryProcessReadModel> {
+    private Long id;
     private BigDecimal price;
-    @NotBlank(message = "select currency")
     private String currency;
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime buy_date;
-    @NotBlank(message = "description can't be null or empty")
     private String description;
     private String transaction_type;
     private String notes;
+
+    CategoryProcessReadModel(Process source) {
+        this.id = source.getId();
+        this.price = source.getPrice();
+        this.currency = source.getCurrency();
+        this.buy_date = source.getBuy_date();
+        this.description = source.getDescription();
+        this.transaction_type = source.getTransaction_type();
+        this.notes = source.getNotes();
+    }
+
+    public Long getId() {return id;}
 
     public BigDecimal getPrice() {return price;}
     public void setPrice(final BigDecimal price) {this.price = price;}
@@ -37,8 +45,4 @@ public class PlainProcessWriteModel {
 
     public String getNotes() {return notes;}
     public void setNotes(final String notes) {this.notes = notes;}
-
-    public Process toProcess(final CategoryType categoryType) {
-        return new Process(price,currency,buy_date,description,transaction_type,notes, categoryType);
-    }
 }

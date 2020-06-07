@@ -1,26 +1,24 @@
-package io.github.organizationApp.expensesCategoryType;
+package io.github.organizationApp.categoryExpenses;
 
 import io.github.organizationApp.expensesProcess.Process;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class PlainProcessReadModel {
+class CategoryProcessWriteModel {
+    @NotNull(message = "price can't be null or empty")
     private BigDecimal price;
+    @NotBlank(message = "select currency")
     private String currency;
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime buy_date;
+    @NotBlank(message = "description can't be null or empty")
     private String description;
     private String transaction_type;
     private String notes;
-
-    PlainProcessReadModel(Process source) {
-        this.price = source.getPrice();
-        this.currency = source.getCurrency();
-        this.buy_date = source.getBuy_date();
-        this.description = source.getDescription();
-        this.transaction_type = source.getTransaction_type();
-        this.notes = source.getNotes();
-    }
 
     public BigDecimal getPrice() {return price;}
     public void setPrice(final BigDecimal price) {this.price = price;}
@@ -39,4 +37,8 @@ public class PlainProcessReadModel {
 
     public String getNotes() {return notes;}
     public void setNotes(final String notes) {this.notes = notes;}
+
+    public Process toProcess(final CategoryType categoryType) {
+        return new Process(price,currency,buy_date,description,transaction_type,notes, categoryType);
+    }
 }

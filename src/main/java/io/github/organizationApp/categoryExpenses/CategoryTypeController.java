@@ -1,12 +1,14 @@
-package io.github.organizationApp.expensesCategoryType;
+package io.github.organizationApp.categoryExpenses;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.organizationApp.expensesProcess.Process;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
+import io.github.organizationApp.monthExpenses.MonthExpensesRepository;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.MediaType;
@@ -29,10 +31,12 @@ public class CategoryTypeController {
     private static final Logger logger = LoggerFactory.getLogger(CategoryTypeController.class);
     private final CategoryTypeService service;
     private final ObjectMapper objectMapper;
+    private final MonthExpensesRepository repository;
 
-    CategoryTypeController(final CategoryTypeService service, final ObjectMapper objectMapper) {
+    CategoryTypeController(final CategoryTypeService service, final ObjectMapper objectMapper, MonthExpensesRepository repo) {
         this.service = service;
         this.objectMapper = objectMapper;
+        this.repository = repo;
     }
 
     /**
@@ -53,17 +57,17 @@ public class CategoryTypeController {
             CategoryType result = service.save(toCategory);
             logger.info("posted new empty category type with id = "+result.getId());
             return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-        } catch (NullPointerException e) {
+        } catch (DataAccessException e) {
             logger.info("an error occured while posting category type");
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
     }
     @Transactional
     @ResponseBody
     @PostMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<PlainReadModel> addCategoryTypeWithProcesses(@RequestParam(value = "year") final String YEAR_PARAM,
-                                                                @RequestParam(value = "month") final String MONTH_PARAM,
-                                                                @RequestBody @Valid final PlainWriteModel toCategory) {
+    ResponseEntity<CategoryFullReadModel> addCategoryTypeWithProcesses(@RequestParam(value = "year") final String YEAR_PARAM,
+                                                                       @RequestParam(value = "month") final String MONTH_PARAM,
+                                                                       @RequestBody @Valid final CategoryFullWriteModel toCategory) {
 
 //        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
 //            logger.info("category level validation failed, no relation between given year and month");
@@ -71,10 +75,10 @@ public class CategoryTypeController {
 //        }
         try {
             MonthExpenses belongingMonth = service.findByMonthAndBelongingYear(YEAR_PARAM, MONTH_PARAM);
-            PlainReadModel result = service.createCategoryWithProcesses(belongingMonth, toCategory);
+            CategoryFullReadModel result = service.createCategoryWithProcesses(belongingMonth, toCategory);
             logger.info("posted new category type + processes content, with id = "+result.getId());
             return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-        } catch (NotFoundException e) {
+        } catch (NotFoundException | DataAccessException e) {
             logger.info("an error occured while posting category type");
             return ResponseEntity.badRequest().build();
         }
@@ -97,7 +101,7 @@ public class CategoryTypeController {
 
             logger.info("posted new process to category with id = " + id);
             return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-        } catch (NotFoundException e) {
+        } catch (NotFoundException | DataAccessException e) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -113,13 +117,13 @@ public class CategoryTypeController {
 //        }
         try {
             final boolean PAGEABLE_PARAM_FLAG = false;
-            // TODO zmienic na wyszukiwanie wszystkich z konkretnego miesiaca
-            List<PlainReadModel> result = service.findAllByMonthExpensesId(YEAR_PARAM, MONTH_PARAM);
-            CollectionModel<?> categoryTypeCollection = service.prepareReadEmptyCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG);
+            final boolean PROCESSES_FLAG = false;
+            List<?> result = service.findAllByMonthExpensesId(YEAR_PARAM, MONTH_PARAM, PROCESSES_FLAG);
+            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
 
             logger.info("exposing all categories!");
             return ResponseEntity.ok(categoryTypeCollection);
-        } catch (NullPointerException | NotFoundException e) {
+        } catch (NotFoundException | DataAccessException e) {
             logger.info("no categories");
             return ResponseEntity.noContent().build();
         }
@@ -136,13 +140,58 @@ public class CategoryTypeController {
 //        }
         try {
             final boolean PAGEABLE_PARAM_FLAG = true;
-            // TODO zmienic na wyszukiwanie wszystkich z konkretnego miesiaca
-            List<PlainReadModel> result = service.findAllByMonthExpensesId(page, YEAR_PARAM, MONTH_PARAM).toList();
-            CollectionModel<?> categoryTypeCollection = service.prepareReadEmptyCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG);
+            final boolean PROCESSES_FLAG = false;
+            List<?> result = service.findAllByMonthExpensesId(page, YEAR_PARAM, MONTH_PARAM, PROCESSES_FLAG).toList();
+            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
 
             logger.info("exposing all categories!");
             return ResponseEntity.ok(categoryTypeCollection);
-        } catch (NullPointerException | NotFoundException e) {
+        } catch (NotFoundException | DataAccessException e) {
+            logger.info("no categories");
+            return ResponseEntity.ok().build();
+        }
+    }
+    @ResponseBody
+    @GetMapping(params = {"processes", "!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> readCategoryTypesWithProcesses(@RequestParam(value = "year") final String YEAR_PARAM,
+                                                            @RequestParam(value = "month") final String MONTH_PARAM) {
+
+    //        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+    //            logger.info("category level validation failed, no relation between given year and month");
+    //            return ResponseEntity.badRequest().build();
+    //        }
+        try {
+            final boolean PAGEABLE_PARAM_FLAG = false;
+            final boolean PROCESSES_FLAG = true;
+            List<?> result = service.findAllByMonthExpensesId(YEAR_PARAM, MONTH_PARAM, PROCESSES_FLAG);
+            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
+
+            logger.info("exposing all categories!");
+            return ResponseEntity.ok(categoryTypeCollection);
+        } catch (NotFoundException | DataAccessException e) {
+            logger.info("no categories");
+            return ResponseEntity.noContent().build();
+        }
+    }
+    @ResponseBody
+    @GetMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<?> readCategoryTypesWithProcesses(final Pageable page,
+                                                     @RequestParam(value = "year") final String YEAR_PARAM,
+                                                     @RequestParam(value = "month") final String MONTH_PARAM) {
+
+//        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+//            logger.info("category level validation failed, no relation between given year and month");
+//            return ResponseEntity.badRequest().build();
+//        }
+        try {
+            final boolean PAGEABLE_PARAM_FLAG = true;
+            final boolean PROCESSES_FLAG = true;
+            List<?> result = service.findAllByMonthExpensesId(page, YEAR_PARAM, MONTH_PARAM, PROCESSES_FLAG).toList();
+            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
+
+            logger.info("exposing all categories!");
+            return ResponseEntity.ok(categoryTypeCollection);
+        } catch (NotFoundException | DataAccessException e) {
             logger.info("no categories");
             return ResponseEntity.ok().build();
         }
@@ -165,7 +214,7 @@ public class CategoryTypeController {
 
             logger.info("exposing '"+ category + "' category content");
             return ResponseEntity.ok(processCollection);
-        } catch (NotFoundException e) {
+        } catch (NotFoundException | DataAccessException e) {
             logger.info("no processes found for given category");
             return ResponseEntity.notFound().build();
         }
@@ -189,7 +238,7 @@ public class CategoryTypeController {
 
             logger.info("exposing '"+ category + "' category content");
             return ResponseEntity.ok(processCollection);
-        } catch (NotFoundException e) {
+        } catch (NotFoundException | DataAccessException e) {
             logger.info("no processes found for given category");
             return ResponseEntity.notFound().build();
         }
@@ -213,7 +262,7 @@ public class CategoryTypeController {
             logger.info("put category type with id = "+ id);
             return ResponseEntity.ok().build();
 
-        } catch (NotFoundException e) {
+        } catch (NotFoundException | DataAccessException e) {
             logger.info("an error occured while put category type");
             return ResponseEntity.badRequest().build();
         }
@@ -239,7 +288,7 @@ public class CategoryTypeController {
             service.saveAndFlush(updatedCategoryType);
             logger.info("succesfully patched category type nr "+id);
             return ResponseEntity.noContent().build();
-        } catch (NotFoundException | IOException e) {
+        } catch (NotFoundException | IOException | DataAccessException e) {
             logger.info("an error occured while patching category type");
             return ResponseEntity.badRequest().build();
         }
@@ -250,13 +299,18 @@ public class CategoryTypeController {
     ResponseEntity<Object> deleteCategoryType(@PathVariable final Integer id,
                                               @RequestParam(value = "year") final String YEAR_PARAM,
                                               @RequestParam(value = "month") final String MONTH_PARAM) {
+
         if(!(service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM) && service.existsById(id))) {
             logger.info("category level validation failed, no relation between given year, month and category id");
             return ResponseEntity.badRequest().build();
         }
-        service.deleteCategoryType(id);
-        logger.warn("deleted category type with id = " +id);
-        return ResponseEntity.ok().build();
+        try {
+            service.deleteCategoryType(id);
+            logger.warn("deleted category type with id = " +id);
+            return ResponseEntity.ok().build();
+        } catch (DataAccessException e ) {
+            return ResponseEntity.badRequest().build();
+        }
     }
     /**
      * Templates

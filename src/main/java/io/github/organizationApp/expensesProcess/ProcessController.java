@@ -1,7 +1,7 @@
 package io.github.organizationApp.expensesProcess;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.organizationApp.expensesCategoryType.CategoryTypeController;
+import io.github.organizationApp.categoryExpenses.CategoryTypeController;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
 import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
@@ -89,26 +89,6 @@ public class ProcessController {
             return ResponseEntity.ok(processCollection);
         }
     }
-//    @ResponseBody
-//    @GetMapping(path = "/{id}", params = "plain", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable final Long id,
-//                                                            @RequestParam(value = "plain") final String PLAIN_PARAM) {
-//
-////        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
-////            logger.info("process level validation failed, no relation between given year, month and category");
-////            return ResponseEntity.badRequest().build();
-////        }
-//        return service.findById(id)
-//                .map(process -> {
-//                    process.add(linkTo(methodOn(ProcessController.class).readProcess(id, PLAIN_PARAM)).withRel("allowed_queries: GET"));
-//                    Link link1 = linkTo(methodOn(ProcessController.class).readProcesses(PLAIN_PARAM)).withRel("all_processes");
-//                    Link link2 = linkTo(methodOn(ProcessController.class).readProcesses(PLAIN_PARAM)).withRel("all_processes?{sort,size,page}");
-//                    EntityModel<Process> processModel = new EntityModel(process,link1, link2);
-//                    logger.info("exposing process with id = " + id);
-//                    return ResponseEntity.ok(processModel);
-//                })
-//                .orElse(ResponseEntity.notFound().build());
-//    }
     @ResponseBody
     @GetMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable final Long id,
@@ -123,12 +103,12 @@ public class ProcessController {
         return service.findById(id)
                 .map(process -> {
                     process.add(linkTo(methodOn(ProcessController.class).readProcess(id, YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)).withRel("allowed_queries: GET,PUT,PATCH,DELETE"));
-                    Link link1 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(process.getCategory().getId(), YEAR_PARAM, MONTH_PARAM)).withRel("chosen_category_processes");
-                    Link link2 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(process.getCategory().getId(), YEAR_PARAM, MONTH_PARAM)).withRel("chosen_category_processes?{sort,size,page}");
-                    Link link3 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(YEAR_PARAM, MONTH_PARAM)).withRel("categories");
-                    Link link4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(YEAR_PARAM, MONTH_PARAM)).withRel("categories?{sort,size,page}");
+                    Link href1 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(process.getCategory().getId(), YEAR_PARAM, MONTH_PARAM)).withRel("chosen_category_processes");
+                    Link href2 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(process.getCategory().getId(), YEAR_PARAM, MONTH_PARAM)).withRel("chosen_category_processes?{sort,size,page}");
+                    Link href3 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(YEAR_PARAM, MONTH_PARAM)).withRel("categories");
+                    Link href4 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(YEAR_PARAM, MONTH_PARAM)).withRel("categories?{sort,size,page}");
 
-                    EntityModel<Process> processModel = new EntityModel(process,link1, link2, link3, link4);
+                    EntityModel<Process> processModel = new EntityModel(process,href1, href2, href3, href4);
                     logger.info("exposing process with id = " + id);
                     return ResponseEntity.ok(processModel);
                 })

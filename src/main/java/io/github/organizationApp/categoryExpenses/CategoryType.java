@@ -1,4 +1,4 @@
-package io.github.organizationApp.expensesCategoryType;
+package io.github.organizationApp.categoryExpenses;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.organizationApp.expensesProcess.Process;

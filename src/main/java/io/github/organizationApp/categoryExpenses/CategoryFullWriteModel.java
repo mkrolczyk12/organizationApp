@@ -1,4 +1,4 @@
-package io.github.organizationApp.expensesCategoryType;
+package io.github.organizationApp.categoryExpenses;
 
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 
@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PlainWriteModel {
+public class CategoryFullWriteModel {
     @NotBlank(message = "type can't be null")
     private String type;
     private String description;
     @Valid
-    private List<PlainProcessWriteModel> processes = new ArrayList<>();
+    private List<CategoryProcessWriteModel> processes = new ArrayList<>();
 
     public String getType() {return type;}
     public void setType(final String type) {this.type = type;}
@@ -21,8 +21,8 @@ public class PlainWriteModel {
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}
 
-    public List<PlainProcessWriteModel> getProcesses() {return processes;}
-    public void setProcesses(final List<PlainProcessWriteModel> processes) {this.processes = processes;}
+    public List<CategoryProcessWriteModel> getProcesses() {return processes;}
+    public void setProcesses(final List<CategoryProcessWriteModel> processes) {this.processes = processes;}
 
     public CategoryType toCategoryType(final MonthExpenses month) {
         var result = new CategoryType();

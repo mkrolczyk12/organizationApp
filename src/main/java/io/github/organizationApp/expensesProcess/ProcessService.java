@@ -1,6 +1,6 @@
 package io.github.organizationApp.expensesProcess;
 
-import io.github.organizationApp.expensesCategoryType.CategoryTypeRepository;
+import io.github.organizationApp.categoryExpenses.CategoryTypeRepository;
 import io.github.organizationApp.monthExpenses.MonthExpensesRepository;
 import io.github.organizationApp.yearExpenses.YearExpensesRepository;
 import javassist.NotFoundException;
@@ -23,7 +23,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
-public class ProcessService {
+class ProcessService {
     private static final Logger logger = LoggerFactory.getLogger(ProcessService.class);
     private final YearExpensesRepository yearRepository;
     private final MonthExpensesRepository monthRepository;
