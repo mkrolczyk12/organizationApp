@@ -4,6 +4,7 @@ import io.github.organizationApp.categoryExpenses.*;
 import io.github.organizationApp.expensesProcess.ProcessController;
 import io.github.organizationApp.expensesProcess.ProcessRepository;
 import io.github.organizationApp.yearExpenses.YearExpenses;
+import io.github.organizationApp.yearExpenses.YearExpensesController;
 import io.github.organizationApp.yearExpenses.YearExpensesRepository;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
@@ -82,7 +83,7 @@ class MonthExpensesService {
                 .collect(Collectors.toList());
     }
 
-    Page<CategoryNoProcessesReadModel> findAllCategoriesBelongToMonth(Pageable page, final Integer monthId) throws NotFoundException {
+    Page<CategoryNoProcessesReadModel> findAllCategoriesBelongToMonth(Pageable page, final Integer monthId) {
         List<CategoryNoProcessesReadModel> categories = categoryRepository.findAllByMonthExpensesId(page, monthId)
                 .stream()
                 .map(CategoryNoProcessesReadModel::new)
@@ -194,9 +195,9 @@ class MonthExpensesService {
         final Link href3 = linkTo(methodOn(MonthExpensesController.class).readEmptyMonths(year)).withRel("?{categories} -> required parameter to POST month with categories");
         final Link href4 = linkTo(methodOn(MonthExpensesController.class).readEmptyMonths(year)).withRel("?{categories} -> required parameter to GET month with all categories");
 
-        // TODO - > zamienic link5 na link do konkretnego roku (tego z którego przeszedlem do danych miesiecy)
-//        final Integer yearId = yearRepository.findByYear(year).get().getId();
-//        final Link href5 = linkTo(methodOn(MonthExpensesController.class).readOneYearContent(monthId, year)).withRel("year");
+         // TODO - > zamienic link5 na link do konkretnego roku (tego z którego przeszedlem do danych miesiecy)
+        final Integer yearId = yearRepository.findByYear(year).get().getId();
+        final Link href5 = linkTo(methodOn(YearExpensesController.class).readOneYearContent(yearId)).withRel("year");
 
         if(CATEGORIES_FLAG_CHOSEN) {
             List<MonthFullReadModel> months = (List<MonthFullReadModel>) unknownMonths;
@@ -209,10 +210,10 @@ class MonthExpensesService {
             });
 
             if(PAGEABLE_PARAM_CHOSEN) {
-                var pagedCategories = new PageImpl<>(months);
-                return new CollectionModel(pagedCategories, href1, href2, href3, href4);
+                var pagedMonths = new PageImpl<>(months);
+                return new CollectionModel(pagedMonths, href1, href2, href3, href4, href5);
             } else {
-                return new CollectionModel(months, href1, href2, href3, href4);
+                return new CollectionModel(months, href1, href2, href3, href4, href5);
             }
         }
         else {
@@ -222,9 +223,9 @@ class MonthExpensesService {
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedCategories = new PageImpl<>(months);
-                return new CollectionModel(pagedCategories, href1, href2, href3, href4);
+                return new CollectionModel(pagedCategories, href1, href2, href3, href4, href5);
             } else {
-                return new CollectionModel(months, href1, href2, href3, href4);
+                return new CollectionModel(months, href1, href2, href3, href4, href5);
             }
         }
     }

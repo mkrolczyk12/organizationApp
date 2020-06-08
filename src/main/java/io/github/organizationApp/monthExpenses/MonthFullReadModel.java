@@ -24,6 +24,15 @@ public class MonthFullReadModel extends RepresentationModel<MonthFullReadModel> 
                 .collect(Collectors.toList());
     }
 
+    /**
+     * for MonthNoCategoriesReadModel class
+     */
+    public MonthFullReadModel(Integer monthId, String month, String monthDescription) {
+        this.id = monthId;
+        this.month = month;
+        this.description = monthDescription;
+    }
+
     public Integer getId() {return id;}
 
     public String getMonth() {return month;}

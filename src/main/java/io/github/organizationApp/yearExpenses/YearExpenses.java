@@ -1,5 +1,6 @@
 package io.github.organizationApp.yearExpenses;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 import org.springframework.hateoas.RepresentationModel;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "year_expenses")
+@JsonIgnoreProperties({"id","months"})
 public class YearExpenses extends RepresentationModel<YearExpenses> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

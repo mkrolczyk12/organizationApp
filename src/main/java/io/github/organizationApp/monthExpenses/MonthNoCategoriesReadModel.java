@@ -6,6 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class MonthNoCategoriesReadModel extends MonthFullReadModel {
 
     public MonthNoCategoriesReadModel(final MonthExpenses source) {
-        super(source);
+        super(source.getId(), source.getMonth(), source.getDescription());
     }
 }

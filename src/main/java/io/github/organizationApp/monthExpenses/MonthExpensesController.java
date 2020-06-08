@@ -84,7 +84,6 @@ public class MonthExpensesController {
 
             logger.info("posted new month + categories content, with id = " + result.getId());
             return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-
         } catch (NotFoundException | DataAccessException e) {
             logger.info("an error occurred while posting month with categories");
             return ResponseEntity.badRequest().build();
@@ -112,7 +111,7 @@ public class MonthExpensesController {
             logger.info("posted new category to month with id = " + id);
             return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
         } catch (NotFoundException | DataAccessException e) {
-            logger.info("an error occurred while posting month with empty categories");
+            logger.info("an error occurred while posting category with empty processes");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -139,7 +138,7 @@ public class MonthExpensesController {
             logger.info("no months");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading months + categories occurred");
+            logger.info("an error while loading months occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -167,7 +166,7 @@ public class MonthExpensesController {
             logger.info("no months");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading months + categories occurred");
+            logger.info("an error while loading months occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -188,7 +187,7 @@ public class MonthExpensesController {
             List<?> result = service.findAllByYear(YEAR_PARAM, CATEGORIES_FLAG);
             CollectionModel<?> monthsCollection = service.prepareReadMonthsHateoas(result, YEAR_PARAM, PAGEABLE_PARAM_FLAG, CATEGORIES_FLAG);
 
-            logger.info("exposing all categories!");
+            logger.info("exposing all months + categories!");
             return ResponseEntity.ok(monthsCollection);
         } catch (NotFoundException e) {
             logger.info("no months");
@@ -251,14 +250,13 @@ public class MonthExpensesController {
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
             logger.info("an error while loading month + categories occurred");
-            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
 
     @ResponseBody
     @GetMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<?> readOneMonthContent(Pageable page,
+    ResponseEntity<?> readOneMonthContent(final Pageable page,
                                           @PathVariable final Integer id,
                                           @RequestParam(value = "year") final String YEAR_PARAM) {
 
@@ -304,7 +302,7 @@ public class MonthExpensesController {
             month.fullUpdate(toUpdate);
             service.save(month);
 
-            logger.info("put month type with id = " + id);
+            logger.info("put month with id = " + id);
             return ResponseEntity.ok().build();
         } catch (NotFoundException | DataAccessException e) {
             logger.info("an error occurred while put month type");
@@ -333,10 +331,10 @@ public class MonthExpensesController {
                     .readValue(request.getReader());
             service.saveAndFlush(updatedMonth);
 
-            logger.info("succesfully patched category type nr " + id);
+            logger.info("succesfully patched month nr " + id);
             return ResponseEntity.noContent().build();
         } catch (NotFoundException | IOException | DataAccessException e) {
-            logger.info("an error occurred while patching category type");
+            logger.info("an error occurred while patching month");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -355,7 +353,7 @@ public class MonthExpensesController {
 
         try {
             service.deleteMonth(id);
-            logger.warn("deleted month type with id = " + id);
+            logger.warn("deleted month with id = " + id);
             return ResponseEntity.ok().build();
         } catch (DataAccessException e) {
             return ResponseEntity.badRequest().build();
