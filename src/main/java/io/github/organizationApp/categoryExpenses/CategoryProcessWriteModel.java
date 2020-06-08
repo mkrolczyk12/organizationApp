@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-class CategoryProcessWriteModel {
+public class CategoryProcessWriteModel {
     @NotNull(message = "price can't be null or empty")
     private BigDecimal price;
     @NotBlank(message = "select currency")

@@ -24,6 +24,7 @@ public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     @ManyToOne
     @JoinColumn(name = "year_id")
     private YearExpenses year;
+
     /**
      * Hibernate use it
      */

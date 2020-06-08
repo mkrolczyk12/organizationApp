@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class CategoryNoProcessesReadModel extends CategoryFullReadModel {
 
     public CategoryNoProcessesReadModel(final CategoryType source) {
-        super(source);
+        super(source.getId(), source.getType(), source.getDescription());
     }
 
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolationException;
+import java.util.NoSuchElementException;
 
 @RestControllerAdvice(annotations = GeneralExceptionsProcessing.class)
 public class GeneralExceptionsControllerAdvice {
@@ -86,6 +87,11 @@ public class GeneralExceptionsControllerAdvice {
     @ExceptionHandler(PropertyReferenceException.class)
     public ResponseEntity<?> handlePropertyReference(final PropertyReferenceException e) {
         logger.warn("captured PropertyReferenceException: invalid " + e.getPropertyName() + " property");
+        return ResponseEntity.badRequest().build();
+    }
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<?> handleNoSuchElement(final NoSuchElementException e) {
+        logger.warn("captured NoSuchElementException: no value present");
         return ResponseEntity.badRequest().build();
     }
 }

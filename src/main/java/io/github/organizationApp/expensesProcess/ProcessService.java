@@ -106,17 +106,16 @@ class ProcessService {
     public CollectionModel<?> addEachProcessLink(final List<Process> processes, final boolean PAGEABLE_PARAM_CHOSEN) {
 
         for (Process each : processes) {
-//            final String YEAR = each.getCategory().getMonthExpenses().getYear().getYear();
-            final String YEAR = "Year_test";
-//            final String MONTH = processes.get(0).getCategory().getMonthExpenses().getMonth();
-            final String MONTH = "Month_test";
-//            final String CATEGORY = processes.get(1).getCategory().getType();
-            final String CATEGORY = "Category_test";
+            final String YEAR = each.getCategory().getMonthExpenses().getYear().getYear();
+            final String MONTH = each.getCategory().getMonthExpenses().getMonth();
+            final String CATEGORY = each.getCategory().getType();
+
             each.add(linkTo(methodOn(ProcessController.class).readProcess(each.getId(), YEAR, MONTH, CATEGORY)).withRel("process"));
-//            processes.forEach(process -> process.add(linkTo(methodOn(ProcessController.class).readProcess(process.getId(), YEAR, MONTH, CATEGORY)).withSelfRel()));
         }
-        Link link1 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withRel("all_processes");
-        Link link2 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withRel("all_processes?{sort,size,page}");
+
+        Link link1 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withSelfRel();
+        Link link2 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withRel("?{sort,size,page}");
+
         if(PAGEABLE_PARAM_CHOSEN) {
             var pagedProcesses = new PageImpl<>(processes);
             return new CollectionModel(pagedProcesses, link1,link2);

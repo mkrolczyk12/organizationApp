@@ -7,7 +7,7 @@ import org.springframework.hateoas.RepresentationModel;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 @JsonIgnoreProperties({"id"})
-class CategoryProcessReadModel extends RepresentationModel<CategoryProcessReadModel> {
+public class CategoryProcessReadModel extends RepresentationModel<CategoryProcessReadModel> {
     private Long id;
     private BigDecimal price;
     private String currency;
@@ -16,7 +16,7 @@ class CategoryProcessReadModel extends RepresentationModel<CategoryProcessReadMo
     private String transaction_type;
     private String notes;
 
-    CategoryProcessReadModel(Process source) {
+    public CategoryProcessReadModel(Process source) {
         this.id = source.getId();
         this.price = source.getPrice();
         this.currency = source.getCurrency();

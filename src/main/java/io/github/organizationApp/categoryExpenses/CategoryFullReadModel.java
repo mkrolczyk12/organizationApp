@@ -22,6 +22,15 @@ public class CategoryFullReadModel extends RepresentationModel<CategoryFullReadM
                 .collect(Collectors.toList());
     }
 
+    /**
+     * for CategoryNoProcessesReadModel class
+     */
+    public CategoryFullReadModel(Integer categoryId, String categoryType, String categoryDescription) {
+        this.id = categoryId;
+        this.type = categoryType;
+        this.description = categoryDescription;
+    }
+
     public Integer getId() {return id;}
 
     public String getType() {return type;}
