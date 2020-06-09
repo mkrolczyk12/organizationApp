@@ -13,7 +13,6 @@ public class CategoryNoProcessesWriteModel {
     private String type;
     private String description;
 
-    @Valid
     private List<CategoryProcessWriteModel> processes = new ArrayList<>();
 
     public String getType() {return type;}

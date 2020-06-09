@@ -24,5 +24,4 @@ public class OrganizationAppApplication {
 	Validator validator() {
 		return new LocalValidatorFactoryBean();
 	}
-
 }
