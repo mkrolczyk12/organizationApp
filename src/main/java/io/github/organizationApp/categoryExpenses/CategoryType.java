@@ -36,14 +36,14 @@ public class CategoryType extends RepresentationModel<CategoryType> {
     }
 
     public CategoryType(CategoryType source) {
-        this.type = source.type;
+        this.type = source.type.toLowerCase();
         this.description = source.description;
     }
 
     public int getId() {return id;}
 
     public String getType() {return type;}
-    public void setType(final String type) {this.type = type;}
+    public void setType(final String type) {this.type = type.toLowerCase();}
 
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}
@@ -55,7 +55,7 @@ public class CategoryType extends RepresentationModel<CategoryType> {
     public void setMonthExpenses(final MonthExpenses monthExpenses) {this.monthExpenses = monthExpenses;}
 
     void fullUpdate(final CategoryType toUpdate) {
-        this.type = toUpdate.type;
+        this.type = toUpdate.type.toLowerCase();
         this.description = toUpdate.description;
     }
 }

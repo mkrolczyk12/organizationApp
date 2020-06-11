@@ -6,13 +6,12 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CategoryNoProcessesWriteModel {
     @NotBlank(message = "type can't be null")
     private String type;
     private String description;
-
+    @Valid
     private List<CategoryProcessWriteModel> processes = new ArrayList<>();
 
     public String getType() {return type;}

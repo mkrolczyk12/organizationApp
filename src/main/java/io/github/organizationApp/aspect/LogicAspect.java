@@ -67,7 +67,7 @@ class LogicAspect {
                 return jp.proceed();
             } catch (Throwable e) {
                 if (e instanceof RuntimeException) {
-                    return (RuntimeException) e;
+                    return e;
                 }
                 return new RuntimeException(e);
             }
@@ -75,4 +75,6 @@ class LogicAspect {
     }
 
     // TODO -> aroundCategoryTypeServiceFunctions()
+    // TODO -> aroundMonthServiceFunctions()
+    // TODO -> aroundYearServiceFunctions()
 }

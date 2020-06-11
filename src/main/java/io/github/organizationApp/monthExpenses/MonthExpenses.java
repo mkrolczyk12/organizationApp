@@ -11,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "month_expenses")
-@JsonIgnoreProperties({"id", "year", "categories"})
+@JsonIgnoreProperties({"id","year","categories"})
 public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,10 +31,16 @@ public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     public MonthExpenses() {
     }
 
+    public MonthExpenses(String month, String description, YearExpenses year) {
+        this.month = month.toLowerCase();
+        this.description = description;
+        this.year = year;
+    }
+
     public Integer getId() {return id;}
 
     public String getMonth() {return month;}
-    public void setMonth(final String month) {this.month = month;}
+    public void setMonth(final String month) {this.month = month.toLowerCase();}
 
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}
@@ -46,7 +52,7 @@ public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     public void setYear(final YearExpenses year) {this.year = year;}
 
     public void fullUpdate(MonthExpenses source) {
-        this.month = source.month;
+        this.month = source.month.toLowerCase();
         this.description = source.description;
     }
 }

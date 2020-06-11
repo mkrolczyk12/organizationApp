@@ -18,6 +18,6 @@ public class MvcConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
         interceptors.forEach(registry::addInterceptor);
-        registry.addInterceptor(new LoggerInterceptor());
+        registry.addInterceptor(new io.github.organizationApp.MvcConfiguration.LoggerInterceptor());
     }
 }

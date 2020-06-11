@@ -56,7 +56,9 @@ public class CategoryTypeController {
         }
 
         try {
-            if(service.checkIfGivenCategoryExist(toCategory.getType(), YEAR_PARAM, MONTH_PARAM)) {
+            MonthExpenses month = service.findByMonth(MONTH_PARAM);
+
+            if(service.checkIfGivenCategoryExist(toCategory.getType(), month)) {
                 logger.info("a category '" + toCategory.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" +MONTH_PARAM + "' already exists!");
                 return ResponseEntity.badRequest().build();
             }
@@ -71,7 +73,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PostMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
@@ -85,7 +86,9 @@ public class CategoryTypeController {
         }
 
         try {
-            if(service.checkIfGivenCategoryExist(toCategory.getType(), YEAR_PARAM, MONTH_PARAM)) {
+            MonthExpenses month = service.findByMonth(MONTH_PARAM);
+
+            if(service.checkIfGivenCategoryExist(toCategory.getType(), month)) {
                 logger.info("a category '" + toCategory.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" +MONTH_PARAM + "' already exists!");
                 return ResponseEntity.badRequest().build();
             } else {
@@ -100,7 +103,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
@@ -125,7 +127,6 @@ public class CategoryTypeController {
         }
 
     }
-
     @ResponseBody
     @GetMapping(params = {"!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readEmptyCategoryTypes(@RequestParam(value = "year") final String YEAR_PARAM,
@@ -153,7 +154,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyCategoryTypes(Pageable page,
@@ -182,7 +182,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(params = {"processes", "!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readCategoryTypesWithProcesses(@RequestParam(value = "year") final String YEAR_PARAM,
@@ -209,7 +208,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readCategoryTypesWithProcesses(final Pageable page,
@@ -237,7 +235,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(value = "/{id}", params = {"!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneCategoryTypeContent(@PathVariable final Integer id,
@@ -266,7 +263,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneCategoryTypeContent(Pageable page,
@@ -296,7 +292,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -311,7 +306,9 @@ public class CategoryTypeController {
         }
 
         try {
-            if(service.checkIfGivenCategoryExist(toUpdate.getType(), YEAR_PARAM, MONTH_PARAM)) {
+            MonthExpenses month = service.findByMonth(MONTH_PARAM);
+
+            if(service.checkIfGivenCategoryExist(toUpdate.getType(), month)) {
                 logger.info("a category '" + toUpdate.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" +MONTH_PARAM + "' already exists!");
                 return ResponseEntity.badRequest().build();
             } else {
@@ -320,7 +317,6 @@ public class CategoryTypeController {
                 category.fullUpdate(toUpdate);
 
                 service.save(category);
-                service.removePreviousCategoryNameInMonthAndYear(previousCategoryName, YEAR_PARAM, MONTH_PARAM);
                 logger.info("put category type with id = "+ id);
                 return ResponseEntity.ok().build();
             }
@@ -329,7 +325,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -344,7 +339,8 @@ public class CategoryTypeController {
         }
 
         try {
-            boolean REMOVE_FLAG = false;
+            MonthExpenses month = service.findByMonth(MONTH_PARAM);
+
             CategoryType category = service.findById(id);
             String categoryBeforeUpdate = category.getType().toLowerCase();
 
@@ -352,16 +348,12 @@ public class CategoryTypeController {
             String categoryAfterUpdate = updatedCategoryType.getType();
 
             if(!categoryBeforeUpdate.equals(categoryAfterUpdate)) {
-                REMOVE_FLAG = true;
-                if(service.checkIfGivenCategoryExist(categoryAfterUpdate, YEAR_PARAM, MONTH_PARAM)) {
+                if(service.checkIfGivenCategoryExist(categoryAfterUpdate, month)) {
                     logger.info("category '" + updatedCategoryType.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" + MONTH_PARAM + "' already exists!");
                     throw new IllegalStateException();
                 }
             }
             service.saveAndFlush(updatedCategoryType);
-            if(REMOVE_FLAG) {
-                service.removePreviousCategoryNameInMonthAndYear(categoryBeforeUpdate, YEAR_PARAM, MONTH_PARAM);
-            }
             logger.info("succesfully patched category type nr "+id);
             return ResponseEntity.noContent().build();
         } catch (NotFoundException | IOException | DataAccessException e) {
@@ -369,7 +361,6 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -382,10 +373,12 @@ public class CategoryTypeController {
             return ResponseEntity.badRequest().build();
         }
         try {
+            String categoryName = service.findById(id).getType();
+
             service.deleteCategoryType(id);
-            logger.warn("deleted category type with id = " +id);
+            logger.warn("deleted category '" + categoryName + "'");
             return ResponseEntity.ok().build();
-        } catch (DataAccessException e ) {
+        } catch (NotFoundException | DataAccessException e ) {
             return ResponseEntity.badRequest().build();
         }
     }

@@ -10,8 +10,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "year_expenses")
-@JsonIgnoreProperties({"id","months"})
+@JsonIgnoreProperties({"id"})
 public class YearExpenses extends RepresentationModel<YearExpenses> {
+    //"months"
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

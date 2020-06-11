@@ -19,6 +19,11 @@ import java.util.NoSuchElementException;
 public class GeneralExceptionsControllerAdvice {
     private static final Logger logger = LoggerFactory.getLogger(GeneralExceptionsControllerAdvice.class);
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
+        logger.warn("captured RuntimeException");
+        return ResponseEntity.notFound().build();
+    }
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException e) {
         logger.warn("captured IllegalArgumentException");

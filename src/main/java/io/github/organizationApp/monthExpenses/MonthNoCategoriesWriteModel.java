@@ -7,7 +7,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MonthNoCategoriesWriteModel {
     @NotBlank(message = "month type can't be null")
@@ -25,7 +24,7 @@ public class MonthNoCategoriesWriteModel {
     public List<CategoryNoProcessesWriteModel> getCategories() {return categories;}
     public void setCategories(final List<CategoryNoProcessesWriteModel> categories) {this.categories = categories;}
 
-    public MonthExpenses toMonth(YearExpenses year) {
+    public MonthExpenses toMonth(final YearExpenses year) {
         var result = new MonthExpenses();
         result.setMonth(month);
         result.setDescription(description);

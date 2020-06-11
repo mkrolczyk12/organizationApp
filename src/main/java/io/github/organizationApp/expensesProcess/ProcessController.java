@@ -47,6 +47,7 @@ public class ProcessController {
     @ResponseBody
     @GetMapping(params = {"all","!sort","!size","!page"},consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readProcesses(@RequestParam(value = "all") final String ALL_PARAM) {
+
         final boolean PAGEABLE_PARAM_FLAG = false;
         try {
             logger.info("starting process async finding");
@@ -96,10 +97,11 @@ public class ProcessController {
                                                             @RequestParam(value = "month") final String MONTH_PARAM,
                                                             @RequestParam(value = "category") final String CATEGORY_PARAM) {
 
-//        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
-//            logger.info("process level validation failed, no relation between given year, month and category");
-//            return ResponseEntity.badRequest().build();
-//        }
+        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
+            logger.info("process level validation failed, no relation between given year, month and category");
+            return ResponseEntity.badRequest().build();
+        }
+
         return service.findById(id)
                 .map(process -> {
                     process.add(linkTo(methodOn(ProcessController.class).readProcess(id, YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)).withRel("allowed_queries: GET,PUT,PATCH,DELETE"));

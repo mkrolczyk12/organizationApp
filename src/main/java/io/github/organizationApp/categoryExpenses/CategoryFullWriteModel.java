@@ -16,7 +16,7 @@ public class CategoryFullWriteModel {
     private List<CategoryProcessWriteModel> processes = new ArrayList<>();
 
     public String getType() {return type;}
-    public void setType(final String type) {this.type = type;}
+    public void setType(final String type) {this.type = type.toLowerCase();}
 
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}

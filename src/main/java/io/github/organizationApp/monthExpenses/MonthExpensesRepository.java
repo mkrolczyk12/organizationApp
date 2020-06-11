@@ -1,5 +1,6 @@
 package io.github.organizationApp.monthExpenses;
 
+import io.github.organizationApp.yearExpenses.YearExpenses;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,12 +15,13 @@ public interface MonthExpensesRepository {
     List<MonthExpenses> findAllByYearId(Integer yearId);
     Page<MonthExpenses> findAllByYearId(Pageable page, Integer yearId);
     Optional<MonthExpenses> findById(Integer id);
-    MonthExpenses findByMonth(String month);
+    Optional<MonthExpenses> findByMonth(String month);
     Optional<MonthExpenses> findByMonthAndYearId(final String month, Integer yearId);
 
     MonthExpenses findByYearId(Integer yearId);
     boolean existsByYearId(Integer yearId);
     boolean existsByMonthAndYearId(String month, Integer yearId);
+    boolean existsByMonthAndYear(String month, YearExpenses year);
 
     boolean existsById(Integer id);
     boolean existsByMonth(String month);

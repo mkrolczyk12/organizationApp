@@ -1,5 +1,6 @@
 package io.github.organizationApp.categoryExpenses;
 
+import io.github.organizationApp.monthExpenses.MonthExpenses;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,6 +18,7 @@ public interface CategoryTypeRepository {
     Optional<CategoryType> findById(final Integer id);
 
     boolean existsByTypeAndMonthExpenses_Id(String category, Integer monthId);
+    boolean existsByTypeAndMonthExpenses(String category, MonthExpenses month);
     boolean existsById(Integer id);
     CategoryType existsByType(String type);
 

@@ -29,7 +29,5 @@ build/
 
 ### VS Code ###
 .vscode/
-organizationApp.zip
 organizationApp-db.mv.db
 organizationApp-db.trace.db
-notes.txt

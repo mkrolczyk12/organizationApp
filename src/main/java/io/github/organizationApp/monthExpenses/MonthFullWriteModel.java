@@ -17,7 +17,7 @@ public class MonthFullWriteModel {
     private List<CategoryNoProcessesWriteModel> categories = new ArrayList<>();
 
     public String getMonth() {return month;}
-    public void setMonth(final String month) {this.month = month;}
+    public void setMonth(final String month) {this.month = month.toLowerCase();}
 
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}

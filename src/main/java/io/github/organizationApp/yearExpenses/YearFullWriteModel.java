@@ -4,7 +4,7 @@ import io.github.organizationApp.monthExpenses.MonthNoCategoriesWriteModel;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,7 +13,8 @@ public class YearFullWriteModel {
     private String year;
     private String description;
     @Valid
-    private List<MonthNoCategoriesWriteModel> months = new ArrayList<>();
+    @NotEmpty
+    private List<MonthNoCategoriesWriteModel> months;
 
     public String getYear() {return year;}
     public void setYear(final String year) {this.year = year;}

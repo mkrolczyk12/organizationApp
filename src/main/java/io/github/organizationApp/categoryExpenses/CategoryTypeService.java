@@ -1,6 +1,5 @@
 package io.github.organizationApp.categoryExpenses;
 
-import io.github.organizationApp.PrepareData;
 import io.github.organizationApp.expensesProcess.Process;
 import io.github.organizationApp.expensesProcess.ProcessController;
 import io.github.organizationApp.expensesProcess.ProcessRepository;
@@ -25,25 +24,22 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
-class CategoryTypeService {
+public class CategoryTypeService {
     private static final Logger logger = LoggerFactory.getLogger(CategoryTypeService.class);
     private final YearExpensesRepository yearRepository;
     private final MonthExpensesRepository monthRepository;
     private final CategoryTypeRepository repository;
     private final ProcessRepository processesRepository;
-    private final PrepareData data;
 
     CategoryTypeService(final YearExpensesRepository yearRepository,
                         final MonthExpensesRepository monthRepository,
                         final CategoryTypeRepository repository,
-                        final ProcessRepository processesRepository,
-                        final PrepareData applicationData) {
+                        final ProcessRepository processesRepository) {
 
         this.yearRepository = yearRepository;
         this.monthRepository = monthRepository;
         this.repository = repository;
         this.processesRepository = processesRepository;
-        this.data = applicationData;
     }
 
     CategoryType save(final CategoryType toCategory) {
@@ -104,14 +100,14 @@ class CategoryTypeService {
                     return new PageImpl<>(items);
                 })
                 .orElseThrow(() -> new NotFoundException("no month for given parameter"));
-        }
+    }
 
-    public List<Process> findAllProcessesBelongToCategory(final Integer Id) throws NotFoundException {
+    List<Process> findAllProcessesBelongToCategory(final Integer Id) throws NotFoundException {
         return processesRepository.findAllByCategory_Id(Id)
                 .orElseThrow(() -> new NotFoundException("no processes found for given category"));
     }
 
-    public Page<Process> findAllProcessesBelongToCategory(Pageable page, final Integer Id) throws NotFoundException {
+    Page<Process> findAllProcessesBelongToCategory(Pageable page, final Integer Id) throws NotFoundException {
         return processesRepository.findAllByCategory_Id(page, Id)
                 .orElseThrow(() -> new NotFoundException("no processes found for given category"));
     }
@@ -119,6 +115,11 @@ class CategoryTypeService {
     CategoryType findById(final Integer id) throws NotFoundException {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("no category found"));
+    }
+
+    MonthExpenses findByMonth(final String monthName) throws NotFoundException {
+        return monthRepository.findByMonth(monthName)
+                .orElseThrow(() -> new NotFoundException("no month found"));
     }
 
     MonthExpenses findByMonthAndBelongingYear(String YEAR_PARAM, String MONTH_PARAM) throws NotFoundException {
@@ -148,7 +149,7 @@ class CategoryTypeService {
         try {
             return yearRepository.findByYear(year)
                     .map(result -> {
-                        if(monthRepository.existsByMonthAndYearId(month, result.getId())) {
+                        if(monthRepository.existsByMonthAndYear(month, result)) {
                             return true;
                         } else
                             return false;
@@ -159,24 +160,11 @@ class CategoryTypeService {
         }
     }
 
-    void removePreviousCategoryNameInMonthAndYear(final String categoryToRemove, String year, String month) {
-        HashSet<String> applicationCategories = data.getCollectionOfExistingCategoriesInMonthAndYear(year,month);
-
-        applicationCategories.remove(categoryToRemove);
-        data.updateCollectionOfExistingCategoriesInMonthAndYear(year, month, applicationCategories);
-    }
-
-    boolean checkIfGivenCategoryExist(final String categoryType, String year, String month) {
-        final String workString = categoryType.toLowerCase();
-        HashSet<String> applicationCategories = data.getCollectionOfExistingCategoriesInMonthAndYear(year,month);
-
-        if(applicationCategories.contains(workString)) {
+    public boolean checkIfGivenCategoryExist(final String categoryType, MonthExpenses month) {
+        if(repository.existsByTypeAndMonthExpenses(categoryType, month)) {
             return true;
-        } else {
-            applicationCategories.add(workString);
-            data.updateCollectionOfExistingCategoriesInMonthAndYear(year, month, applicationCategories);
+        } else
             return false;
-        }
     }
 
     /**

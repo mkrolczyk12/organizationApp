@@ -8,7 +8,6 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-//@Order(Ordered.HIGHEST_PRECEDENCE)
 @Component
 class LoggerFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(LoggerFilter.class);

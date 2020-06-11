@@ -42,59 +42,54 @@ public class YearExpensesController {
     @Transactional
     @ResponseBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<YearExpenses> addEmptyYear(@RequestBody @Valid final YearExpenses toYearExpenses) {
-
-        // TODO -> przed POST roku trzeba sprawdzić czy czasem taki juz nie istnieje + rok musi być koniecznie przedstawiony jako liczba
+    ResponseEntity<YearExpenses> addEmptyYear(@RequestBody @Valid final YearExpenses toYear) {
 
         try {
-            YearExpenses result = service.save(toYearExpenses);
-
-            logger.info("posted new year with id = "+result.getId());
-            return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-        } catch (NullPointerException | DataAccessException e) {
-            logger.warn("an error occured while posting new year");
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @Transactional
-    @ResponseBody
-    @PostMapping(params = {"months"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<YearFullReadModel> addYearWithMonths(@RequestBody @Valid final YearFullWriteModel toYearExpenses) {
-
-        // TODO -> przed POST roku trzeba sprawdzić czy czasem taki juz nie istnieje + rok musi być koniecznie przedstawiony jako liczba,
-
-        try {
-            YearFullReadModel result = service.createYearWithMonths(toYearExpenses);
-
-            logger.info("posted new year + months content, with id = " + result.getId());
-            return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
+            if(service.checkIfGivenYearExistAndIfRepresentsNumber(toYear.getYear())) {
+                logger.info("a year '" + toYear.getYear().toLowerCase() + "' already exists!");
+                return ResponseEntity.badRequest().build();
+            } else {
+                YearExpenses result = service.save(toYear);
+                logger.info("posted new year with id = "+result.getId());
+                return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
+            }
         } catch (DataAccessException e) {
-            logger.info("an error occurred while posting year with months");
+            logger.warn("an error occurred while posting new year");
+            return ResponseEntity.badRequest().build();
+        } catch (NumberFormatException e) {
+            logger.warn("an NumberFormatException occurred while validating '" + toYear.getYear() + "'");
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<MonthExpenses> addMonthToChosenYear(@PathVariable final Integer id,
-                                                       @RequestBody @Valid final MonthExpenses toMonthExpenses) {
+                                                       @RequestBody @Valid final MonthExpenses toMonth) {
 
-        // TODO -> sprawdzic czy miesiac w danym roku juz nie istnieje
+        if(!service.yearLevelValidationSuccess(id)) {
+            logger.info("year level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
-            service.setYearToNewMonth(id, toMonthExpenses);
-            MonthExpenses result = service.addMonth(toMonthExpenses);
+            YearExpenses year = service.findById(id);
 
-            logger.info("posted new month to year with id = " + id);
-            return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
+            if(service.checkIfMonthExistInGivenYear(toMonth.getMonth(), year)) {
+                logger.info("a month '" + toMonth.getMonth().toLowerCase() + "' in year '" + year.getYear() + "' already exists!");
+                return ResponseEntity.badRequest().build();
+            } else {
+                service.setYearToNewMonth(id, toMonth);
+                MonthExpenses result = service.addMonth(toMonth);
+
+                logger.info("posted new month to year with id = " + id);
+                return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
+            }
         } catch (NotFoundException | DataAccessException e) {
             logger.info("an error occurred while posting month to given year");
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(params = {"!sort","!size","!page"},consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyYears() {
@@ -113,7 +108,6 @@ public class YearExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyYears(final Pageable page) {
@@ -132,7 +126,6 @@ public class YearExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(params = {"months", "!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readYearsWithMonths() {
@@ -151,9 +144,8 @@ public class YearExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
-    @GetMapping(params = {"categories"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"months"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readYearsWithMonths(final Pageable page) {
 
         final boolean PAGEABLE_PARAM_FLAG = true;
@@ -170,7 +162,6 @@ public class YearExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(value = "/{id}", params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneYearContent(@PathVariable final Integer id) {
@@ -192,7 +183,6 @@ public class YearExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneYearContent(final Pageable page,
@@ -215,61 +205,83 @@ public class YearExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PutMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> fullUpdateYear(@PathVariable final Integer id,
                                           @RequestBody @Valid final YearExpenses toUpdate) {
 
-        // TODO -> trzeba sprawdzic czy istnieje taki rok
-        // TODO -> Przed PUTEM roku trzeba sprawdzic czy czasem przy przypadku zmiany nazwy roku juz taki nie istnieje
+        if(!service.yearLevelValidationSuccess(id)) {
+            logger.info("year level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
-            YearExpenses year = service.findById(id);
-            year.fullUpdate(toUpdate);
-            service.save(year);
+            if(service.checkIfGivenYearExistAndIfRepresentsNumber(toUpdate.getYear())) {
+                return ResponseEntity.badRequest().build();
+            } else {
+                YearExpenses year = service.findById(id);
+                year.fullUpdate(toUpdate);
 
-            logger.info("put year with id = " + id);
-            return ResponseEntity.ok().build();
-        } catch (NotFoundException | DataAccessException e) {
+                service.save(year);
+                logger.info("put year with id = " + id);
+                return ResponseEntity.ok().build();
+            }
+        } catch (NullPointerException | NotFoundException | DataAccessException e) {
             logger.info("an error occurred while put year");
+            return ResponseEntity.badRequest().build();
+        } catch (NumberFormatException e) {
+            logger.warn("an NumberFormatException occurred while validating '" + toUpdate.getYear() + "'");
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PatchMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> partUpdateYear(@PathVariable final Integer id,
                                                  @Valid final HttpServletRequest request) {
 
-        // TODO -> trzeba sprawdzic czy istnieje taki rok
-        // TODO -> Przed PATCHEM roku trzeba sprawdzic czy czasem przy przypadku zmiany nazwy roku juz taki nie istnieje
+        if(!service.yearLevelValidationSuccess(id)) {
+            logger.info("year level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
             YearExpenses year = service.findById(id);
-            YearExpenses updatedYear = objectMapper
-                    .readerForUpdating(year)
-                    .readValue(request.getReader());
-            service.saveAndFlush(updatedYear);
+            String yearBeforeUpdate = year.getYear().toLowerCase();
 
-            logger.info("succesfully patched year nr " + id);
+            YearExpenses updatedYear = objectMapper.readerForUpdating(year).readValue(request.getReader());
+            String yearAfterUpdate = updatedYear.getYear();
+
+            if(!yearBeforeUpdate.equals(yearAfterUpdate)) {
+                if(service.checkIfGivenYearExistAndIfRepresentsNumber(yearAfterUpdate)) {
+                    throw new IllegalStateException();
+                }
+            }
+
+            service.saveAndFlush(updatedYear);
+            logger.info("successfully patched year nr " + id);
             return ResponseEntity.noContent().build();
         } catch (NotFoundException | IOException | DataAccessException e) {
             logger.info("an error occurred while patching year");
             return ResponseEntity.badRequest().build();
+        } catch (NumberFormatException e) {
+            logger.warn("an NumberFormatException occurred while validating year with id = '" + id + "'");
+            return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @DeleteMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteYear(@PathVariable final Integer id) {
 
-        // TODO -> trzeba sprawdzic czy istnieje taki rok
+        if(!service.yearLevelValidationSuccess(id)) {
+            logger.info("year level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
+
             service.deleteYear(id);
             logger.warn("deleted year with id = " + id);
             return ResponseEntity.ok().build();

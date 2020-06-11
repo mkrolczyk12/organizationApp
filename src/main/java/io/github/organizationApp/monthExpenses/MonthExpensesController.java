@@ -46,14 +46,18 @@ public class MonthExpensesController {
     ResponseEntity<MonthExpenses> addEmptyMonth(@RequestParam(value = "year") final String YEAR_PARAM,
                                                 @RequestBody @Valid final MonthExpenses toMonth) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
-
-        // TODO -> Przed POSTEM miesiaca trzeba sprawdzic czy czasem taki juz nie istnieje
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
+            YearExpenses year = service.findByYear(YEAR_PARAM);
+
+            if(service.checkIfGivenMonthNameExist(toMonth.getMonth(), year)) {
+                logger.info("a month '" + toMonth.getMonth().toLowerCase() + "' in year '" + YEAR_PARAM + "' already exists!");
+                return ResponseEntity.badRequest().build();
+            }
             service.setYearToNewMonth(YEAR_PARAM, toMonth);
             MonthExpenses result = service.save(toMonth);
 
@@ -62,68 +66,78 @@ public class MonthExpensesController {
         } catch (NullPointerException | DataAccessException | NotFoundException e) {
             logger.warn("an error occurred while posting new empty month");
             return ResponseEntity.badRequest().build();
+        } catch (ClassCastException e) {
+            logger.warn("an ClassCastException occurred while validating '" + toMonth.getMonth() + "' month");
+            return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PostMapping(params = {"categories"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<MonthFullReadModel> addMonthWithCategories(@RequestParam(value = "year") final String YEAR_PARAM,
-                                                              @RequestBody @Valid final MonthFullWriteModel toMonthExpenses) {
+                                                              @RequestBody @Valid final MonthFullWriteModel toMonth) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
-
-        // TODO -> Przed POSTEM miesiaca trzeba sprawdzic czy czasem taki juz nie istnieje
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
-            YearExpenses belongingYear = service.findByYear(YEAR_PARAM);
-            MonthFullReadModel result = service.createMonthWithCategories(belongingYear, toMonthExpenses);
+            YearExpenses year = service.findByYear(YEAR_PARAM);
 
-            logger.info("posted new month + categories content, with id = " + result.getId());
-            return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-        } catch (NotFoundException | DataAccessException e) {
+            if(service.checkIfGivenMonthNameExist(toMonth.getMonth(), year)) {
+                logger.info("a month '" + toMonth.getMonth().toLowerCase() + "' in year '" + YEAR_PARAM + "' already exists!");
+                return ResponseEntity.badRequest().build();
+            } else {
+                YearExpenses belongingYear = service.findByYear(YEAR_PARAM);
+                MonthFullReadModel result = service.createMonthWithCategories(belongingYear, toMonth);
+
+                logger.info("posted new month + categories content, with id = " + result.getId());
+                return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
+            }
+        } catch (NullPointerException | NotFoundException | DataAccessException e) {
             logger.info("an error occurred while posting month with categories");
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CategoryType> addCategoryToChosenMonth(@PathVariable final Integer id,
                                                            @RequestParam(value = "year") final String YEAR_PARAM,
-                                                           @RequestBody @Valid final CategoryType toCategoryType) {
+                                                           @RequestBody @Valid final CategoryType toCategory) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
-
-        // TODO -> sprawdzic czy nowa kategoria w danym miesiącu juz nie istnieje
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
-            service.setMonthToNewCategory(id, toCategoryType);
-            CategoryType result = service.addCategory(toCategoryType);
+            MonthExpenses month = service.findById(id);
 
-            logger.info("posted new category to month with id = " + id);
-            return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-        } catch (NotFoundException | DataAccessException e) {
+            if(service.checkIfCategoryExistInGivenMonth(toCategory.getType(), month)) {
+                logger.info("a category '" + toCategory.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" + month.getMonth() + "' already exists!");
+                return ResponseEntity.badRequest().build();
+            } else {
+                service.setMonthToNewCategory(id, toCategory);
+                CategoryType result = service.addCategory(toCategory);
+
+                logger.info("posted new category to month with id = " + id);
+                return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
+            }
+        } catch (NullPointerException | NotFoundException | DataAccessException e) {
             logger.info("an error occurred while posting category with empty processes");
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyMonths(@RequestParam(value = "year") final String YEAR_PARAM) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         final boolean PAGEABLE_PARAM_FLAG = false;
         final boolean CATEGORIES_FLAG = false;
@@ -142,16 +156,15 @@ public class MonthExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyMonths(final Pageable page,
                                       @RequestParam(value = "year") final String YEAR_PARAM) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         final boolean PAGEABLE_PARAM_FLAG = true;
         final boolean CATEGORIES_FLAG = false;
@@ -170,15 +183,14 @@ public class MonthExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(params = {"categories", "!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readMonthsWithCategories(@RequestParam(value = "year") final String YEAR_PARAM) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         final boolean PAGEABLE_PARAM_FLAG = false;
         final boolean CATEGORIES_FLAG = true;
@@ -197,16 +209,15 @@ public class MonthExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(params = {"categories"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readMonthsWithCategories(final Pageable page,
                                                @RequestParam(value = "year") final String YEAR_PARAM) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         final boolean PAGEABLE_PARAM_FLAG = true;
         final boolean CATEGORIES_FLAG = true;
@@ -225,16 +236,15 @@ public class MonthExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(value = "/{id}", params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneMonthContent(@PathVariable final Integer id,
                                                  @RequestParam(value = "year") final String YEAR_PARAM) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         final boolean PAGEABLE_PARAM_FLAG = false;
 
@@ -253,17 +263,16 @@ public class MonthExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @ResponseBody
     @GetMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneMonthContent(final Pageable page,
                                           @PathVariable final Integer id,
                                           @RequestParam(value = "year") final String YEAR_PARAM) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         final boolean PAGEABLE_PARAM_FLAG = true;
 
@@ -282,7 +291,6 @@ public class MonthExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -290,26 +298,30 @@ public class MonthExpensesController {
                                            @RequestParam(value = "year") final String YEAR_PARAM,
                                            @RequestBody @Valid final MonthExpenses toUpdate) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
-
-        // TODO -> Przed PUTEM miesiaca trzeba sprawdzic czy czasem przy przypadku zmiany nazwy miesiaca juz taki nie istnieje
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
-            MonthExpenses month = service.findById(id);
-            month.fullUpdate(toUpdate);
-            service.save(month);
+            YearExpenses year = service.findByYear(YEAR_PARAM);
 
-            logger.info("put month with id = " + id);
-            return ResponseEntity.ok().build();
+            if(service.checkIfGivenMonthNameExist(toUpdate.getMonth(), year)) {
+                logger.info("a month '" + toUpdate.getMonth().toLowerCase() + "' in year '" + YEAR_PARAM + "' already exists!");
+                return ResponseEntity.badRequest().build();
+            } else {
+                MonthExpenses month = service.findById(id);
+                month.fullUpdate(toUpdate);
+
+                service.save(month);
+                logger.info("put month with id = " + id);
+                return ResponseEntity.ok().build();
+            }
         } catch (NotFoundException | DataAccessException e) {
             logger.info("an error occurred while put month type");
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
     @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -317,45 +329,53 @@ public class MonthExpensesController {
                                                   @RequestParam(value = "year") final String YEAR_PARAM,
                                                   @Valid final HttpServletRequest request) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
-
-        // TODO -> Przed PATCHEM miesiaca trzeba sprawdzic czy czasem przy przypadku zmiany nazwy miesiaca juz taki nie istnieje
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
-            MonthExpenses month = service.findById(id);
-            MonthExpenses updatedMonth = objectMapper
-                    .readerForUpdating(month)
-                    .readValue(request.getReader());
-            service.saveAndFlush(updatedMonth);
+            YearExpenses year = service.findByYear(YEAR_PARAM);
 
-            logger.info("succesfully patched month nr " + id);
+            MonthExpenses month = service.findById(id);
+            String monthBeforeUpdate = month.getMonth().toLowerCase();
+
+            MonthExpenses updatedMonth = objectMapper.readerForUpdating(month).readValue(request.getReader());
+            String monthAfterUpdate = updatedMonth.getMonth().toLowerCase();
+
+            if(!monthBeforeUpdate.equals(monthAfterUpdate)) {
+                if(service.checkIfGivenMonthNameExist(monthAfterUpdate, year)) {
+                    logger.info("a month '" + monthAfterUpdate.toLowerCase() + "' in year '" + YEAR_PARAM + "' already exists!");
+                    throw new IllegalStateException();
+                }
+            }
+
+            service.saveAndFlush(updatedMonth);
+            logger.info("successfully patched month nr " + id);
             return ResponseEntity.noContent().build();
         } catch (NotFoundException | IOException | DataAccessException e) {
             logger.info("an error occurred while patching month");
             return ResponseEntity.badRequest().build();
         }
     }
-
     @Transactional
     @ResponseBody
-    @DeleteMapping
-    @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Object> deleteCategoryType(@PathVariable final Integer id,
-                                              @RequestParam(value = "year") final String YEAR_PARAM) {
+    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Object> deleteMonth(@PathVariable final Integer id,
+                                       @RequestParam(value = "year") final String YEAR_PARAM) {
 
-//        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
-//            logger.info("month level validation failed, no year founded");
-//            return ResponseEntity.badRequest().build();
-//        }
+        if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
+            logger.info("month level validation failed, no year founded");
+            return ResponseEntity.badRequest().build();
+        }
 
         try {
+            String monthName = service.findById(id).getMonth();
+
             service.deleteMonth(id);
-            logger.warn("deleted month with id = " + id);
+            logger.warn("deleted month '" + monthName + "'");
             return ResponseEntity.ok().build();
-        } catch (DataAccessException e) {
+        } catch (NotFoundException | DataAccessException e) {
             return ResponseEntity.badRequest().build();
         }
     }

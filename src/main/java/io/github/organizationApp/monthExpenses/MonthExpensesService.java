@@ -1,8 +1,6 @@
 package io.github.organizationApp.monthExpenses;
 
 import io.github.organizationApp.categoryExpenses.*;
-import io.github.organizationApp.expensesProcess.ProcessController;
-import io.github.organizationApp.expensesProcess.ProcessRepository;
 import io.github.organizationApp.yearExpenses.YearExpenses;
 import io.github.organizationApp.yearExpenses.YearExpensesController;
 import io.github.organizationApp.yearExpenses.YearExpensesRepository;
@@ -14,37 +12,35 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
-class MonthExpensesService {
+public class MonthExpensesService {
     private static final Logger logger = LoggerFactory.getLogger(MonthExpensesService.class);
     private final YearExpensesRepository yearRepository;
     private final MonthExpensesRepository repository;
     private final CategoryTypeRepository categoryRepository;
-    private final ProcessRepository processesRepository;
+    private final CategoryTypeService categoryService;
 
     MonthExpensesService(final YearExpensesRepository yearRepository,
                          final MonthExpensesRepository repository,
                          final CategoryTypeRepository categoryRepository,
-                         final ProcessRepository processesRepository) {
+                         final CategoryTypeService categoryService) {
 
         this.yearRepository = yearRepository;
         this.repository = repository;
         this.categoryRepository = categoryRepository;
-        this.processesRepository = processesRepository;
+        this.categoryService = categoryService;
     }
 
 
-    public MonthExpenses save(final MonthExpenses month) {return repository.save(month);}
+    MonthExpenses save(final MonthExpenses month) {return repository.save(month);}
 
     CategoryType addCategory(final CategoryType toCategoryType) {
         return categoryRepository.save(toCategoryType);
@@ -117,21 +113,20 @@ class MonthExpensesService {
                 .map(result -> result.getId())
                 .orElseThrow(() -> new NotFoundException("no year with given parameter"));
 
+        Page<MonthExpenses> pagedMonths = repository.findAllByYearId(page, yearId);
+        List<?> items;
         if(CATEGORIES_FLAG_CHOSEN) {
-            Page<MonthExpenses> pagedMonths = repository.findAllByYearId(page, yearId);
-            List<?> items = pagedMonths.toList()
+            items = pagedMonths.toList()
                     .stream()
                     .map(MonthFullReadModel::new)
                     .collect(Collectors.toList());
-            return new PageImpl(items);
         } else {
-            Page<MonthExpenses> pagedMonths = repository.findAllByYearId(page, yearId);
-            List<?> items = pagedMonths.toList()
+            items = pagedMonths.toList()
                     .stream()
                     .map(MonthNoCategoriesReadModel::new)
                     .collect(Collectors.toList());
-            return new PageImpl(items);
         }
+        return new PageImpl(items);
     }
 
     MonthExpenses findById(final Integer id) throws NotFoundException {
@@ -144,15 +139,16 @@ class MonthExpensesService {
                 .orElseThrow(() -> new NotFoundException("no year found"));
     }
 
-    public MonthExpenses findByMonth(final String month) {
-        return repository.findByMonth(month);
+    MonthExpenses findByMonth(final String month) throws NotFoundException {
+        return repository.findByMonth(month)
+                .orElseThrow(() -> new NotFoundException("no month found"));
     }
 
     public boolean existsByMonth(String month) {
         return repository.existsByMonth(month);
     }
 
-    public MonthExpenses findByYearId(Integer yearId) {
+    MonthExpenses findByYearId(Integer yearId) {
         return repository.findByYearId(yearId);
     }
 
@@ -160,7 +156,7 @@ class MonthExpensesService {
         return repository.existsByYearId(yearId);
     }
 
-    public boolean existsByMonthAndYearId(String month, Integer yearId) {
+    boolean existsByMonthAndYearId(String month, Integer yearId) {
         return repository.existsByMonthAndYearId(month,yearId);
     }
 
@@ -176,6 +172,18 @@ class MonthExpensesService {
             return yearRepository.existsByYear(year);
     }
 
+    public boolean checkIfGivenMonthNameExist(final String monthName, final YearExpenses year) {
+        if(repository.existsByMonthAndYear(monthName, year)) {
+            return true;
+        } else
+            return false;
+    }
+
+    boolean checkIfCategoryExistInGivenMonth(final String categoryName, final MonthExpenses month) {
+        return categoryService.checkIfGivenCategoryExist(categoryName, month);
+    }
+
+
     /**
      *
      * @param unknownMonths List of months
@@ -190,13 +198,11 @@ class MonthExpensesService {
                                                 final boolean PAGEABLE_PARAM_CHOSEN,
                                                 final boolean CATEGORIES_FLAG_CHOSEN) {
 
+        final Integer yearId = yearRepository.findByYear(year).get().getId();
         final Link href1 = linkTo(methodOn(MonthExpensesController.class).readEmptyMonths(year)).withSelfRel();
         final Link href2 = linkTo(methodOn(MonthExpensesController.class).readEmptyMonths(year)).withRel("month?{sort,size,page}");
         final Link href3 = linkTo(methodOn(MonthExpensesController.class).readEmptyMonths(year)).withRel("?{categories} -> required parameter to POST month with categories");
         final Link href4 = linkTo(methodOn(MonthExpensesController.class).readEmptyMonths(year)).withRel("?{categories} -> required parameter to GET month with all categories");
-
-         // TODO - > zamienic link5 na link do konkretnego roku (tego z którego przeszedlem do danych miesiecy)
-        final Integer yearId = yearRepository.findByYear(year).get().getId();
         final Link href5 = linkTo(methodOn(YearExpensesController.class).readOneYearContent(yearId)).withRel("year");
 
         if(CATEGORIES_FLAG_CHOSEN) {

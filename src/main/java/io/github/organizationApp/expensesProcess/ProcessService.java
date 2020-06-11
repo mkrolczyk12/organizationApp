@@ -55,7 +55,7 @@ class ProcessService {
         return CompletableFuture.supplyAsync(() -> repository.findAll(page));
     }
 
-    public List<Process> findAll() {
+    List<Process> findAll() {
         return repository.findAll();
     }
 
@@ -77,9 +77,9 @@ class ProcessService {
 
     /**
      *
-     * @param year - String param 'year' given in URL
-     * @param month - String param 'month' given in URL
-     * @param category - String param 'category' given in URL
+     * @param year String param 'year' given in URL
+     * @param month String param 'month' given in URL
+     * @param category String param 'category' given in URL
      * @return true or false
      */
     boolean processLevelValidationSuccess(final String year, final String month, final String category) {
@@ -99,11 +99,11 @@ class ProcessService {
 
     /**
      *
-     * @param processes - list of processes
-     * @param PAGEABLE_PARAM_CHOSEN - Boolean param checks if any Page param is given in URL
-     * @return - CollectionModel<PagedModel<PlainReadModel>> or CollectionModel<Process>
+     * @param processes list of processes
+     * @param PAGEABLE_PARAM_CHOSEN Boolean param checks if any Page param is given in URL
+     * @return CollectionModel<PagedModel<PlainReadModel>> or CollectionModel<Process>
      */
-    public CollectionModel<?> addEachProcessLink(final List<Process> processes, final boolean PAGEABLE_PARAM_CHOSEN) {
+    CollectionModel<?> addEachProcessLink(final List<Process> processes, final boolean PAGEABLE_PARAM_CHOSEN) {
 
         for (Process each : processes) {
             final String YEAR = each.getCategory().getMonthExpenses().getYear().getYear();
@@ -113,13 +113,13 @@ class ProcessService {
             each.add(linkTo(methodOn(ProcessController.class).readProcess(each.getId(), YEAR, MONTH, CATEGORY)).withRel("process"));
         }
 
-        Link link1 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withSelfRel();
-        Link link2 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withRel("?{sort,size,page}");
+        Link href1 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withSelfRel();
+        Link href2 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withRel("?{sort,size,page}");
 
         if(PAGEABLE_PARAM_CHOSEN) {
             var pagedProcesses = new PageImpl<>(processes);
-            return new CollectionModel(pagedProcesses, link1,link2);
+            return new CollectionModel(pagedProcesses, href1,href2);
         }
-        return new CollectionModel<>(processes, link1,link2);
+        return new CollectionModel<>(processes, href1,href2);
     }
 }
