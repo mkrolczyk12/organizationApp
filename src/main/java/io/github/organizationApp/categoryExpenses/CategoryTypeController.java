@@ -27,7 +27,7 @@ import java.util.List;
 
 @Controller
 @GeneralExceptionsProcessing
-@RequestMapping("/category")
+@RequestMapping("/categories")
 public class CategoryTypeController {
     private static final Logger logger = LoggerFactory.getLogger(CategoryTypeController.class);
     private final CategoryTypeService service;

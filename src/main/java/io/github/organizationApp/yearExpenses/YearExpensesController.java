@@ -25,7 +25,7 @@ import java.util.List;
 
 @Controller
 @GeneralExceptionsProcessing
-@RequestMapping("/year")
+@RequestMapping("/years")
 public class YearExpensesController {
     private static final Logger logger = LoggerFactory.getLogger(YearExpensesController.class);
     private final YearExpensesService service;

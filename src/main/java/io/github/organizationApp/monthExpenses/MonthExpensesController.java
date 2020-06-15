@@ -26,7 +26,7 @@ import java.util.List;
 
 @Controller
 @GeneralExceptionsProcessing
-@RequestMapping("/month")
+@RequestMapping("/months")
 public class MonthExpensesController {
     private static final Logger logger = LoggerFactory.getLogger(MonthExpensesController.class);
     private final MonthExpensesService service;

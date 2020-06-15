@@ -139,8 +139,7 @@ class YearExpensesService {
         final Link href1 = linkTo(methodOn(YearExpensesController.class).readEmptyYears()).withSelfRel();
         final Link href2 = linkTo(methodOn(YearExpensesController.class).readEmptyYears()).withRel("year?{sort,size,page}");
         final Link href3 = linkTo(methodOn(YearExpensesController.class).readEmptyYears()).withRel("year allowed_queries: POST empty year,GET,PUT,PATCH,?{DELETE}");
-        final Link href4 = linkTo(methodOn(YearExpensesController.class).readEmptyYears()).withRel("?{months} -> required parameter to POST year with months");
-        final Link href5 = linkTo(methodOn(YearExpensesController.class).readEmptyYears()).withRel("?{months} -> required parameter to GET year with all declared months");
+        final Link href4 = linkTo(methodOn(YearExpensesController.class).readEmptyYears()).withRel("?{months} -> required parameter to GET year with all declared months");
 
         if(MONTHS_FLAG_CHOSEN) {
             List<YearFullReadModel> years = (List<YearFullReadModel>) unknownYears;
@@ -154,9 +153,9 @@ class YearExpensesService {
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedYears = new PageImpl<>(years);
-                return new CollectionModel(pagedYears, href1, href2, href3, href4, href5);
+                return new CollectionModel(pagedYears, href1, href2, href3, href4);
             } else {
-                return new CollectionModel(years, href1, href2, href3, href4, href5);
+                return new CollectionModel(years, href1, href2, href3, href4);
             }
         }
         else {
@@ -166,9 +165,9 @@ class YearExpensesService {
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedYears = new PageImpl<>(years);
-                return new CollectionModel(pagedYears, href1, href2, href3, href4, href5);
+                return new CollectionModel(pagedYears, href1, href2, href3, href4);
             } else {
-                return new CollectionModel(years, href1, href2, href3, href4, href5);
+                return new CollectionModel(years, href1, href2, href3, href4);
             }
         }
     }

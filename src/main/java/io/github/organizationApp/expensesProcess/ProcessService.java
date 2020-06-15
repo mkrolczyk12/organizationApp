@@ -91,7 +91,7 @@ class ProcessService {
                         } else
                             return false;
                     })
-                    .orElseThrow( () -> new NotFoundException("process validation failed"));
+                    .orElseThrow(() -> new NotFoundException("process validation failed"));
         } catch (NotFoundException | NoSuchElementException e) {
             return false;
         }
