@@ -5,17 +5,18 @@ DROP TABLE IF EXISTS expenses_process;
 
 CREATE TABLE year_expenses (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    year VARCHAR(15) NOT NULL,
+    year SMALLINT NOT NULL,
     description VARCHAR(200)
 );
 CREATE TABLE month_expenses (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    month VARCHAR(15) NOT NULL,
+    month VARCHAR(15) NOT NULL
+    CHECK (month IN ('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')),
     description VARCHAR(200),
     year_id INT,
     FOREIGN KEY (year_id) REFERENCES year_expenses (id)
 );
-CREATE TABLE expenses_category (
+CREATE TABLE category_expenses (
     id INT PRIMARY KEY AUTO_INCREMENT,
     type VARCHAR(30) NOT NULL,
     description VARCHAR(200),
@@ -33,7 +34,7 @@ CREATE TABLE expenses_process (
     created_on DATETIME NULL,
     updated_on DATETIME NULL,
     category_id INT,
-    FOREIGN KEY (category_id) REFERENCES expenses_category (id)
+    FOREIGN KEY (category_id) REFERENCES category_expenses (id)
 );
 
 
@@ -42,12 +43,13 @@ DROP TABLE IF EXISTS month_salary;
 
 CREATE TABLE year_salary (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    year DATETIME,
+    year SMALLINT NOT NULL,
     description VARCHAR(200)
 );
 CREATE TABLE month_salary (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    month DATETIME,
+    month VARCHAR(15) NOT NULL
+    CHECK (month IN ('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')),
     netto_price DECIMAL(15,2),
     currency VARCHAR(6) NOT NULL,
     VAT_rate DECIMAL(3,2) NOT NULL,

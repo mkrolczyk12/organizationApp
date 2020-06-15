@@ -46,7 +46,7 @@ public class YearExpensesController {
 
         try {
             if(service.checkIfGivenYearExistAndIfRepresentsNumber(toYear.getYear())) {
-                logger.info("a year '" + toYear.getYear().toLowerCase() + "' already exists!");
+                logger.info("a year '" + toYear.getYear() + "' already exists!");
                 return ResponseEntity.badRequest().build();
             } else {
                 YearExpenses result = service.save(toYear);
@@ -86,7 +86,7 @@ public class YearExpensesController {
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
             }
         } catch (NotFoundException | DataAccessException e) {
-            logger.info("an error occurred while posting month to given year");
+            logger.warn("an error occurred while posting month to given year");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -104,7 +104,7 @@ public class YearExpensesController {
             logger.info("exposing all years!");
             return ResponseEntity.ok(yearsCollection);
         } catch (NullPointerException | DataAccessException e) {
-            logger.info("an error while loading years occurred");
+            logger.warn("an error while loading years occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -122,7 +122,7 @@ public class YearExpensesController {
             logger.info("exposing all years!");
             return ResponseEntity.ok(yearsCollection);
         } catch (DataAccessException | NullPointerException e) {
-            logger.info("an error while loading years occurred");
+            logger.warn("an error while loading years occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -140,7 +140,7 @@ public class YearExpensesController {
             logger.info("exposing all years + months!");
             return ResponseEntity.ok(yearsCollection);
         } catch (DataAccessException | NullPointerException e) {
-            logger.info("an error while loading years + months occurred");
+            logger.warn("an error while loading years + months occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -158,7 +158,7 @@ public class YearExpensesController {
             logger.info("exposing all years + months!");
             return ResponseEntity.ok(yearsCollection);
         } catch (DataAccessException | NullPointerException e) {
-            logger.info("an error while loading years + months occurred");
+            logger.warn("an error while loading years + months occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -170,7 +170,7 @@ public class YearExpensesController {
 
         try {
             List<MonthNoCategoriesReadModel> result = service.findAllMonthsBelongToYear(id);
-            String year = service.findById(id).getYear();
+            short year = service.findById(id).getYear();
             CollectionModel<?> yearCollection = service.prepareReadOneYearContentHateoas(result, year, PAGEABLE_PARAM_FLAG);
 
             logger.info("exposing '" + year + "' year content");
@@ -179,7 +179,7 @@ public class YearExpensesController {
             logger.info("no months found for given year");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading year + months occurred");
+            logger.warn("an error while loading year + months occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -192,7 +192,7 @@ public class YearExpensesController {
 
         try {
             List<MonthNoCategoriesReadModel> result = service.findAllMonthsBelongToYear(page, id).toList();
-            String year = service.findById(id).getYear();
+            short year = service.findById(id).getYear();
             CollectionModel<?> yearCollection = service.prepareReadOneYearContentHateoas(result, year, PAGEABLE_PARAM_FLAG);
 
             logger.info("exposing '" + year + "' year content");
@@ -201,7 +201,7 @@ public class YearExpensesController {
             logger.info("no months found for given year");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading year + months occurred");
+            logger.warn("an error while loading year + months occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -248,12 +248,12 @@ public class YearExpensesController {
 
         try {
             YearExpenses year = service.findById(id);
-            String yearBeforeUpdate = year.getYear().toLowerCase();
+            short yearBeforeUpdate = year.getYear();
 
             YearExpenses updatedYear = objectMapper.readerForUpdating(year).readValue(request.getReader());
-            String yearAfterUpdate = updatedYear.getYear();
+            short yearAfterUpdate = updatedYear.getYear();
 
-            if(!yearBeforeUpdate.equals(yearAfterUpdate)) {
+            if(!(yearBeforeUpdate == yearAfterUpdate)) {
                 if(service.checkIfGivenYearExistAndIfRepresentsNumber(yearAfterUpdate)) {
                     throw new IllegalStateException();
                 }
@@ -263,7 +263,7 @@ public class YearExpensesController {
             logger.info("successfully patched year nr " + id);
             return ResponseEntity.noContent().build();
         } catch (NotFoundException | IOException | DataAccessException e) {
-            logger.info("an error occurred while patching year");
+            logger.warn("an error occurred while patching year");
             return ResponseEntity.badRequest().build();
         } catch (NumberFormatException e) {
             logger.warn("an NumberFormatException occurred while validating year with id = '" + id + "'");

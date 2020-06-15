@@ -10,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @Entity
-@Table(name = "expenses_category")
+@Table(name = "category_expenses")
 @JsonIgnoreProperties({"id","monthExpenses"})
 public class CategoryType extends RepresentationModel<CategoryType> {
     @Id

@@ -97,7 +97,7 @@ class YearExpensesService {
                 .orElseThrow(() -> new NotFoundException("no year with given parameter"));
     }
 
-    boolean existsByYear(String year) {
+    boolean existsByYear(short year) {
         return repository.existsByYear(year);
     }
 
@@ -113,8 +113,8 @@ class YearExpensesService {
         repository.deleteById(id);
     }
 
-    boolean checkIfGivenYearExistAndIfRepresentsNumber(final String year) {
-        if (repository.existsByYear(year) | !isInteger(year)) {
+    boolean checkIfGivenYearExistAndIfRepresentsNumber(final short year) {
+        if (repository.existsByYear(year)) {
             return true;
         } else
             return false;
@@ -145,9 +145,9 @@ class YearExpensesService {
             List<YearFullReadModel> years = (List<YearFullReadModel>) unknownYears;
 
             years.forEach(Year -> {
-                final String yearType = Year.getYear();
+                final short year = Year.getYear();
                 List<MonthNoCategoriesReadModel> months = Year.getMonths();
-                months.forEach(Month -> Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), yearType)).withRel("month allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
+                months.forEach(Month -> Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("month allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
                 Year.add(linkTo(methodOn(YearExpensesController.class).readOneYearContent(Year.getId())).withRel("year_allowed_queries: POST month,GET,PUT,PATCH,?{DELETE}"));
             });
 
@@ -173,7 +173,7 @@ class YearExpensesService {
     }
 
     CollectionModel<?> prepareReadOneYearContentHateoas(final List<MonthNoCategoriesReadModel> months,
-                                                        final String year,
+                                                        final short year,
                                                         final boolean PAGEABLE_PARAM_CHOSEN) {
 
         months.forEach(Month -> Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}")));
@@ -193,32 +193,32 @@ class YearExpensesService {
         }
     }
 
-    /**
-     * @isInteger checks if given 'year' param represents a number
-     * @param givenYear String param 'year' given in URL
-     * @return true or false
-     */
-    public static boolean isInteger(String givenYear) {
-        if (givenYear == null) {
-            return false;
-        }
-        int length = givenYear.length();
-        if (length == 0) {
-            return false;
-        }
-        int i = 0;
-        if (givenYear.charAt(0) == '-') {
-            if (length == 1) {
-                return false;
-            }
-            i = 1;
-        }
-        for (; i < length; i++) {
-            char c = givenYear.charAt(i);
-            if (c < '0' || c > '9') {
-                return false;
-            }
-        }
-        return true;
-    }
+//    /**
+//     * @isInteger checks if given 'year' param represents a number
+//     * @param givenYear String param 'year' given in URL
+//     * @return true or false
+//     */
+//    public static boolean isInteger(String givenYear) {
+//        if (givenYear == null) {
+//            return false;
+//        }
+//        int length = givenYear.length();
+//        if (length == 0) {
+//            return false;
+//        }
+//        int i = 0;
+//        if (givenYear.charAt(0) == '-') {
+//            if (length == 1) {
+//                return false;
+//            }
+//            i = 1;
+//        }
+//        for (; i < length; i++) {
+//            char c = givenYear.charAt(i);
+//            if (c < '0' || c > '9') {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 }

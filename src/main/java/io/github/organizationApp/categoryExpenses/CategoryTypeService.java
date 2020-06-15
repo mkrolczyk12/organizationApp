@@ -50,7 +50,7 @@ public class CategoryTypeService {
         return processesRepository.save(toProcess);
     }
 
-    void setMonthToNewCategory(final String year, final String month, final CategoryType toCategory) throws NotFoundException {
+    void setMonthToNewCategory(final short year, final String month, final CategoryType toCategory) throws NotFoundException {
         final Integer yearId = yearRepository.findByYear(year).get().getId();
         MonthExpenses Month = monthRepository.findByMonthAndYearId(month, yearId)
                 .orElseThrow(() -> new NotFoundException("no month founded"));
@@ -69,7 +69,7 @@ public class CategoryTypeService {
         return new CategoryFullReadModel(result);
     }
 
-    List<?> findAllByMonthExpensesId(final String year, final String month, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
+    List<?> findAllByMonthExpensesId(final short year, final String month, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
 
         Integer yearId  = yearRepository.findByYear(year)
                 .map(result -> result.getId())
@@ -83,7 +83,7 @@ public class CategoryTypeService {
                 .orElseThrow(() -> new NotFoundException("no month for given parameter"));
     }
 
-    Page<?> findAllByMonthExpensesId(final Pageable page, final String year, final String month, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
+    Page<?> findAllByMonthExpensesId(final Pageable page, final short year, final String month, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
 
         Integer yearId  = yearRepository.findByYear(year)
                 .map(result -> result.getId())
@@ -122,8 +122,8 @@ public class CategoryTypeService {
                 .orElseThrow(() -> new NotFoundException("no month found"));
     }
 
-    MonthExpenses findByMonthAndBelongingYear(String YEAR_PARAM, String MONTH_PARAM) throws NotFoundException {
-        return monthRepository.findByMonthAndYearId(MONTH_PARAM, yearRepository.findByYear(YEAR_PARAM).get().getId())
+    MonthExpenses findByMonthAndBelongingYear(short year, String month) throws NotFoundException {
+        return monthRepository.findByMonthAndYearId(month, yearRepository.findByYear(year).get().getId())
                 .orElseThrow(() -> new NotFoundException("no month found"));
     }
 
@@ -145,7 +145,7 @@ public class CategoryTypeService {
      * @param month - param 'month' given in URL
      * @return true or false
      */
-    boolean categoryTypeLevelValidationSuccess(final String year, final String month) {
+    boolean categoryTypeLevelValidationSuccess(final short year, final String month) {
         try {
             return yearRepository.findByYear(year)
                     .map(result -> {
@@ -170,14 +170,14 @@ public class CategoryTypeService {
     /**
      *
      * @param unknownCategories - List of categories
-     * @param year - String param 'year' given in URL
+     * @param year - short param 'year' given in URL
      * @param month - String param 'month' given in URL
      * @param PAGEABLE_PARAM_CHOSEN - Boolean param checks if any Page param is given in URL
      * @param PROCESSES_FLAG_CHOSEN - Boolean param choose if categories should include processes or not
      * @return - CollectionModel<PagedModel<PlainReadModel>> or CollectionModel<PlainReadModel>
      */
     CollectionModel<?> prepareReadCategoryTypesHateoas(final List<?> unknownCategories,
-                                                            final String year,
+                                                            final short year,
                                                             final String month,
                                                             final boolean PAGEABLE_PARAM_CHOSEN,
                                                             final boolean PROCESSES_FLAG_CHOSEN) {
@@ -232,7 +232,7 @@ public class CategoryTypeService {
      * @return - CollectionModel<PagedModel<Process>> or CollectionModel<Process>
      */
     CollectionModel<?> prepareReadOneCategoryTypeContentHateoas(final List<Process> processes,
-                                                                final String year,
+                                                                final short year,
                                                                 final String month,
                                                                 final String category,
                                                                 final boolean PAGEABLE_PARAM_CHOSEN) {

@@ -82,7 +82,7 @@ class ProcessService {
      * @param category String param 'category' given in URL
      * @return true or false
      */
-    boolean processLevelValidationSuccess(final String year, final String month, final String category) {
+    boolean processLevelValidationSuccess(final short year, final String month, final String category) {
         try {
             return monthRepository.findByMonthAndYearId(month, yearRepository.findByYear(year).get().getId())
                     .map(result -> {
@@ -106,7 +106,7 @@ class ProcessService {
     CollectionModel<?> addEachProcessLink(final List<Process> processes, final boolean PAGEABLE_PARAM_CHOSEN) {
 
         for (Process each : processes) {
-            final String YEAR = each.getCategory().getMonthExpenses().getYear().getYear();
+            final short YEAR = each.getCategory().getMonthExpenses().getYear().getYear();
             final String MONTH = each.getCategory().getMonthExpenses().getMonth();
             final String CATEGORY = each.getCategory().getType();
 

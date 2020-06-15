@@ -9,12 +9,14 @@ import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +45,7 @@ public class MonthExpensesController {
     @Transactional
     @ResponseBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<MonthExpenses> addEmptyMonth(@RequestParam(value = "year") final String YEAR_PARAM,
+    ResponseEntity<MonthExpenses> addEmptyMonth(@RequestParam(value = "year") final short YEAR_PARAM,
                                                 @RequestBody @Valid final MonthExpenses toMonth) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
@@ -63,18 +65,22 @@ public class MonthExpensesController {
 
             logger.info("posted new empty month with id = " + result.getId());
             return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
-        } catch (NullPointerException | DataAccessException | NotFoundException e) {
+        } catch (NullPointerException | NotFoundException e) {
             logger.warn("an error occurred while posting new empty month");
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         } catch (ClassCastException e) {
             logger.warn("an ClassCastException occurred while validating '" + toMonth.getMonth() + "' month");
+            return ResponseEntity.badRequest().build();
+        } catch (DataIntegrityViolationException e) {
+            logger.warn("an DataIntegrityViolationException occurred while posting new month in year '" + YEAR_PARAM + "': invalid value '" + toMonth.getMonth() + "' in field 'month'");
             return ResponseEntity.badRequest().build();
         }
     }
     @Transactional
     @ResponseBody
     @PostMapping(params = {"categories"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<MonthFullReadModel> addMonthWithCategories(@RequestParam(value = "year") final String YEAR_PARAM,
+    ResponseEntity<MonthFullReadModel> addMonthWithCategories(@RequestParam(value = "year") final short YEAR_PARAM,
                                                               @RequestBody @Valid final MonthFullWriteModel toMonth) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
@@ -95,8 +101,11 @@ public class MonthExpensesController {
                 logger.info("posted new month + categories content, with id = " + result.getId());
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
             }
-        } catch (NullPointerException | NotFoundException | DataAccessException e) {
-            logger.info("an error occurred while posting month with categories");
+        } catch (NullPointerException | NotFoundException e) {
+            logger.warn("an error occurred while posting month with categories");
+            return ResponseEntity.badRequest().build();
+        } catch (DataIntegrityViolationException e) {
+            logger.warn("an DataIntegrityViolationException occurred while posting new month in year '" + YEAR_PARAM + "': invalid value '" + toMonth.getMonth() + "' in field 'month'");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -104,7 +113,7 @@ public class MonthExpensesController {
     @ResponseBody
     @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CategoryType> addCategoryToChosenMonth(@PathVariable final Integer id,
-                                                           @RequestParam(value = "year") final String YEAR_PARAM,
+                                                           @RequestParam(value = "year") final short YEAR_PARAM,
                                                            @RequestBody @Valid final CategoryType toCategory) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
@@ -126,13 +135,13 @@ public class MonthExpensesController {
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
             }
         } catch (NullPointerException | NotFoundException | DataAccessException e) {
-            logger.info("an error occurred while posting category with empty processes");
+            logger.warn("an error occurred while posting category with empty processes");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<?> readEmptyMonths(@RequestParam(value = "year") final String YEAR_PARAM) {
+    ResponseEntity<?> readEmptyMonths(@RequestParam(value = "year") final short YEAR_PARAM) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
             logger.info("month level validation failed, no year founded");
@@ -152,14 +161,14 @@ public class MonthExpensesController {
             logger.info("no months");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading months occurred");
+            logger.warn("an error while loading months occurred");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyMonths(final Pageable page,
-                                      @RequestParam(value = "year") final String YEAR_PARAM) {
+                                      @RequestParam(value = "year") final short YEAR_PARAM) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
             logger.info("month level validation failed, no year founded");
@@ -179,13 +188,13 @@ public class MonthExpensesController {
             logger.info("no months");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading months occurred");
+            logger.warn("an error while loading months occurred");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(params = {"categories", "!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> readMonthsWithCategories(@RequestParam(value = "year") final String YEAR_PARAM) {
+    public ResponseEntity<?> readMonthsWithCategories(@RequestParam(value = "year") final short YEAR_PARAM) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
             logger.info("month level validation failed, no year founded");
@@ -205,14 +214,14 @@ public class MonthExpensesController {
             logger.info("no months");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading months + categories occurred");
+            logger.warn("an error while loading months + categories occurred");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(params = {"categories"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readMonthsWithCategories(final Pageable page,
-                                               @RequestParam(value = "year") final String YEAR_PARAM) {
+                                               @RequestParam(value = "year") final short YEAR_PARAM) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
             logger.info("month level validation failed, no year founded");
@@ -232,14 +241,14 @@ public class MonthExpensesController {
             logger.info("no months");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading months + categories occurred");
+            logger.warn("an error while loading months + categories occurred");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(value = "/{id}", params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneMonthContent(@PathVariable final Integer id,
-                                                 @RequestParam(value = "year") final String YEAR_PARAM) {
+                                                 @RequestParam(value = "year") final short YEAR_PARAM) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
             logger.info("month level validation failed, no year founded");
@@ -259,7 +268,7 @@ public class MonthExpensesController {
             logger.info("no categories found for given month");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading month + categories occurred");
+            logger.warn("an error while loading month + categories occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -267,7 +276,7 @@ public class MonthExpensesController {
     @GetMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneMonthContent(final Pageable page,
                                           @PathVariable final Integer id,
-                                          @RequestParam(value = "year") final String YEAR_PARAM) {
+                                          @RequestParam(value = "year") final short YEAR_PARAM) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
             logger.info("month level validation failed, no year founded");
@@ -287,7 +296,7 @@ public class MonthExpensesController {
             logger.info("no categories found for given month");
             return ResponseEntity.noContent().build();
         } catch (DataAccessException e) {
-            logger.info("an error while loading month + categories occurred");
+            logger.warn("an error while loading month + categories occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -295,7 +304,7 @@ public class MonthExpensesController {
     @ResponseBody
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> fullUpdateMonth(@PathVariable final Integer id,
-                                           @RequestParam(value = "year") final String YEAR_PARAM,
+                                           @RequestParam(value = "year") final short YEAR_PARAM,
                                            @RequestBody @Valid final MonthExpenses toUpdate) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
@@ -318,7 +327,7 @@ public class MonthExpensesController {
                 return ResponseEntity.ok().build();
             }
         } catch (NotFoundException | DataAccessException e) {
-            logger.info("an error occurred while put month type");
+            logger.warn("an error occurred while put month type");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -326,7 +335,7 @@ public class MonthExpensesController {
     @ResponseBody
     @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> partUpdateMonth(@PathVariable final Integer id,
-                                                  @RequestParam(value = "year") final String YEAR_PARAM,
+                                                  @RequestParam(value = "year") final short YEAR_PARAM,
                                                   @Valid final HttpServletRequest request) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
@@ -354,7 +363,7 @@ public class MonthExpensesController {
             logger.info("successfully patched month nr " + id);
             return ResponseEntity.noContent().build();
         } catch (NotFoundException | IOException | DataAccessException e) {
-            logger.info("an error occurred while patching month");
+            logger.warn("an error occurred while patching month");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -362,7 +371,7 @@ public class MonthExpensesController {
     @ResponseBody
     @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteMonth(@PathVariable final Integer id,
-                                       @RequestParam(value = "year") final String YEAR_PARAM) {
+                                       @RequestParam(value = "year") final short YEAR_PARAM) {
 
         if(!service.monthLevelValidationSuccess(YEAR_PARAM)) {
             logger.info("month level validation failed, no year founded");

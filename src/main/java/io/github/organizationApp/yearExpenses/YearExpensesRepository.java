@@ -12,9 +12,9 @@ public interface YearExpensesRepository {
     List<YearExpenses> findAll();
     Page<YearExpenses> findAll(Pageable page);
     Optional<YearExpenses> findById(Integer id);
-    Optional<YearExpenses> findByYear(String year);
+    Optional<YearExpenses> findByYear(short year);
     boolean existsById(Integer id);
-    boolean existsByYear(String year);
+    boolean existsByYear(short year);
 
     YearExpenses saveAndFlush(YearExpenses month);
 

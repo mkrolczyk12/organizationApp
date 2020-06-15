@@ -3,21 +3,21 @@ package io.github.organizationApp.yearExpenses;
 import io.github.organizationApp.monthExpenses.MonthNoCategoriesWriteModel;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class YearFullWriteModel {
-    @NotBlank(message = "year type can't be null")
-    private String year;
+    @NotNull(message = "year type can't be null")
+    private short year;
     private String description;
     @Valid
     @NotEmpty
     private List<MonthNoCategoriesWriteModel> months;
 
-    public String getYear() {return year;}
-    public void setYear(final String year) {this.year = year;}
+    public short getYear() {return year;}
+    public void setYear(final short year) {this.year = year;}
 
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}

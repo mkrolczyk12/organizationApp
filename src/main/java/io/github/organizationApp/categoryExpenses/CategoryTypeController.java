@@ -46,7 +46,7 @@ public class CategoryTypeController {
     @Transactional
     @ResponseBody
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<CategoryType> addEmptyCategoryType(@RequestParam(value = "year") final String YEAR_PARAM,
+    ResponseEntity<CategoryType> addEmptyCategoryType(@RequestParam(value = "year") final short YEAR_PARAM,
                                                       @RequestParam(value = "month") final String MONTH_PARAM,
                                                       @RequestBody @Valid final CategoryType toCategory) {
 
@@ -69,14 +69,14 @@ public class CategoryTypeController {
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
             }
         } catch (NullPointerException | DataAccessException | NotFoundException e) {
-            logger.info("an error occurred while posting category type");
+            logger.warn("an error occurred while posting category type");
             return ResponseEntity.badRequest().build();
         }
     }
     @Transactional
     @ResponseBody
     @PostMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<CategoryFullReadModel> addCategoryTypeWithProcesses(@RequestParam(value = "year") final String YEAR_PARAM,
+    ResponseEntity<CategoryFullReadModel> addCategoryTypeWithProcesses(@RequestParam(value = "year") final short YEAR_PARAM,
                                                                        @RequestParam(value = "month") final String MONTH_PARAM,
                                                                        @RequestBody @Valid final CategoryFullWriteModel toCategory) {
 
@@ -99,7 +99,7 @@ public class CategoryTypeController {
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
             }
         } catch (NullPointerException | NotFoundException | DataAccessException e) {
-            logger.info("an error occurred while posting category type");
+            logger.warn("an error occurred while posting category type");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -107,7 +107,7 @@ public class CategoryTypeController {
     @ResponseBody
     @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Process> addProcessToChosenCategory(@PathVariable final Integer id,
-                                                              @RequestParam(value = "year") final String YEAR_PARAM,
+                                                              @RequestParam(value = "year") final short YEAR_PARAM,
                                                               @RequestParam(value = "month") final String MONTH_PARAM,
                                                               @RequestBody @Valid final Process toProcess) {
 
@@ -129,7 +129,7 @@ public class CategoryTypeController {
     }
     @ResponseBody
     @GetMapping(params = {"!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> readEmptyCategoryTypes(@RequestParam(value = "year") final String YEAR_PARAM,
+    public ResponseEntity<?> readEmptyCategoryTypes(@RequestParam(value = "year") final short YEAR_PARAM,
                                                     @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
@@ -150,14 +150,14 @@ public class CategoryTypeController {
             logger.info("no categories");
             return ResponseEntity.ok().build();
         }  catch (DataAccessException e) {
-            logger.info("an error while loading categories + processes occurred");
+            logger.warn("an error while loading categories + processes occurred");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyCategoryTypes(Pageable page,
-                                            @RequestParam(value = "year") final String YEAR_PARAM,
+                                            @RequestParam(value = "year") final short YEAR_PARAM,
                                             @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
@@ -178,13 +178,13 @@ public class CategoryTypeController {
             logger.info("no categories");
             return ResponseEntity.ok().build();
         }  catch (DataAccessException e) {
-            logger.info("an error while loading categories + processes occurred");
+            logger.warn("an error while loading categories + processes occurred");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(params = {"processes", "!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> readCategoryTypesWithProcesses(@RequestParam(value = "year") final String YEAR_PARAM,
+    public ResponseEntity<?> readCategoryTypesWithProcesses(@RequestParam(value = "year") final short YEAR_PARAM,
                                                             @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
@@ -204,14 +204,14 @@ public class CategoryTypeController {
             logger.info("no categories");
             return ResponseEntity.ok().build();
         }  catch (DataAccessException e) {
-            logger.info("an error while loading categories + processes occurred");
+            logger.warn("an error while loading categories + processes occurred");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readCategoryTypesWithProcesses(final Pageable page,
-                                                     @RequestParam(value = "year") final String YEAR_PARAM,
+                                                     @RequestParam(value = "year") final short YEAR_PARAM,
                                                      @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
@@ -231,14 +231,14 @@ public class CategoryTypeController {
             logger.info("no categories");
             return ResponseEntity.ok().build();
         }  catch (DataAccessException e) {
-            logger.info("an error while loading categories + processes occurred");
+            logger.warn("an error while loading categories + processes occurred");
             return ResponseEntity.badRequest().build();
         }
     }
     @ResponseBody
     @GetMapping(value = "/{id}", params = {"!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneCategoryTypeContent(@PathVariable final Integer id,
-                                                        @RequestParam(value = "year") final String YEAR_PARAM,
+                                                        @RequestParam(value = "year") final short YEAR_PARAM,
                                                         @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
@@ -259,7 +259,7 @@ public class CategoryTypeController {
             logger.info("no processes found for given category");
             return ResponseEntity.ok().build();
         }  catch (DataAccessException e) {
-            logger.info("an error while loading category + processes occurred");
+            logger.warn("an error while loading category + processes occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -267,7 +267,7 @@ public class CategoryTypeController {
     @GetMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneCategoryTypeContent(Pageable page,
                                                  @PathVariable final Integer id,
-                                                 @RequestParam(value = "year") final String YEAR_PARAM,
+                                                 @RequestParam(value = "year") final short YEAR_PARAM,
                                                  @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
@@ -288,7 +288,7 @@ public class CategoryTypeController {
             logger.info("no processes found for given category");
             return ResponseEntity.ok().build();
         }  catch (DataAccessException e) {
-            logger.info("an error while loading category + processes occurred");
+            logger.warn("an error while loading category + processes occurred");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -296,7 +296,7 @@ public class CategoryTypeController {
     @ResponseBody
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> fullUpdateCategoryType(@PathVariable final Integer id,
-                                                  @RequestParam(value = "year") final String YEAR_PARAM,
+                                                  @RequestParam(value = "year") final short YEAR_PARAM,
                                                   @RequestParam(value = "month") final String MONTH_PARAM,
                                                   @RequestBody @Valid final CategoryType toUpdate) {
 
@@ -321,7 +321,7 @@ public class CategoryTypeController {
                 return ResponseEntity.ok().build();
             }
         } catch (NullPointerException | NotFoundException | DataAccessException e) {
-            logger.info("an error occurred while put category type");
+            logger.warn("an error occurred while put category type");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -329,7 +329,7 @@ public class CategoryTypeController {
     @ResponseBody
     @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> partUpdateCategoryType(@PathVariable final Integer id,
-                                                         @RequestParam(value = "year") final String YEAR_PARAM,
+                                                         @RequestParam(value = "year") final short YEAR_PARAM,
                                                          @RequestParam(value = "month") final String MONTH_PARAM,
                                                          @Valid final HttpServletRequest request) {
 
@@ -357,7 +357,7 @@ public class CategoryTypeController {
             logger.info("succesfully patched category type nr "+id);
             return ResponseEntity.noContent().build();
         } catch (NotFoundException | IOException | DataAccessException e) {
-            logger.info("an error occurred while patching category type");
+            logger.warn("an error occurred while patching category type");
             return ResponseEntity.badRequest().build();
         }
     }
@@ -365,7 +365,7 @@ public class CategoryTypeController {
     @ResponseBody
     @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteCategoryType(@PathVariable final Integer id,
-                                              @RequestParam(value = "year") final String YEAR_PARAM,
+                                              @RequestParam(value = "year") final short YEAR_PARAM,
                                               @RequestParam(value = "month") final String MONTH_PARAM) {
 
         if(!(service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM) && service.existsById(id))) {

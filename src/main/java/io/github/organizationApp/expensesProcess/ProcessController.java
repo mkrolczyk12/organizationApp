@@ -56,10 +56,10 @@ public class ProcessController {
 
 
             CollectionModel<?> processCollection = service.addEachProcessLink(result, PAGEABLE_PARAM_FLAG);
-            logger.warn("exposing all processes!");
+            logger.info("exposing all processes!");
             return ResponseEntity.ok(processCollection);
         } catch (ExecutionException | InterruptedException e) {
-            logger.info("Async finding failed, switched to normal finding");
+            logger.warn("Async finding failed, switched to normal finding");
             List<Process> result = service.findAll();
 
             CollectionModel<?> processCollection = service.addEachProcessLink(result, PAGEABLE_PARAM_FLAG);
@@ -80,10 +80,10 @@ public class ProcessController {
 
 
             CollectionModel<?> processCollection = service.addEachProcessLink(result, PAGEABLE_PARAM_FLAG);
-            logger.warn("exposing all processes!");
+            logger.info("exposing all processes!");
             return ResponseEntity.ok(processCollection);
         } catch (ExecutionException | InterruptedException e) {
-            logger.info("Async finding failed, switched to normal finding");
+            logger.warn("Async finding failed, switched to normal finding");
             List<Process> result = service.findAll(page).toList();
 
             CollectionModel<?> processCollection = service.addEachProcessLink(result, PAGEABLE_PARAM_FLAG);
@@ -93,7 +93,7 @@ public class ProcessController {
     @ResponseBody
     @GetMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable final Long id,
-                                                            @RequestParam(value = "year") final String YEAR_PARAM,
+                                                            @RequestParam(value = "year") final short YEAR_PARAM,
                                                             @RequestParam(value = "month") final String MONTH_PARAM,
                                                             @RequestParam(value = "category") final String CATEGORY_PARAM) {
 
@@ -120,7 +120,7 @@ public class ProcessController {
     @ResponseBody
     @PutMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> fullUpdateProcess(@PathVariable final Long id,
-                                             @RequestParam(value = "year") final String YEAR_PARAM,
+                                             @RequestParam(value = "year") final short YEAR_PARAM,
                                              @RequestParam(value = "month") final String MONTH_PARAM,
                                              @RequestParam(value = "category") final String CATEGORY_PARAM,
                                              @RequestBody @Valid final Process toUpdate){
@@ -142,7 +142,7 @@ public class ProcessController {
     @ResponseBody
     @PatchMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> partUpdateProcess(@PathVariable final Long id,
-                                                    @RequestParam(value = "year") final String YEAR_PARAM,
+                                                    @RequestParam(value = "year") final short YEAR_PARAM,
                                                     @RequestParam(value = "month") final String MONTH_PARAM,
                                                     @RequestParam(value = "category") final String CATEGORY_PARAM,
                                                     @Valid final HttpServletRequest request) {
@@ -169,7 +169,7 @@ public class ProcessController {
     @ResponseBody
     @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteProcess(@PathVariable final Long id,
-                                         @RequestParam(value = "year") final String YEAR_PARAM,
+                                         @RequestParam(value = "year") final short YEAR_PARAM,
                                          @RequestParam(value = "month") final String MONTH_PARAM,
                                          @RequestParam(value = "category") final String CATEGORY_PARAM) {
 

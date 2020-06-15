@@ -5,19 +5,19 @@ import io.github.organizationApp.monthExpenses.MonthExpenses;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
 @Table(name = "year_expenses")
-@JsonIgnoreProperties({"id"})
+@JsonIgnoreProperties({"id", "months"})
 public class YearExpenses extends RepresentationModel<YearExpenses> {
-    //"months"
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @NotBlank(message = "year type can't be null")
-    private String year;
+    @NotNull(message = "year type can't be null")
+    private short year;
     private String description;
     @OneToMany(mappedBy = "year")
     private List<MonthExpenses> months;
@@ -30,8 +30,8 @@ public class YearExpenses extends RepresentationModel<YearExpenses> {
 
     public Integer getId() {return id;}
 
-    public String getYear() {return year;}
-    public void setYear(final String year) {this.year = year;}
+    public short getYear() {return year;}
+    public void setYear(final short year) {this.year = year;}
 
     public String getDescription() {return description;}
     public void setDescription(final String description) {this.description = description;}

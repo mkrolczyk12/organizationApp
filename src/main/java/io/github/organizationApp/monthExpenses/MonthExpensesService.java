@@ -46,7 +46,7 @@ public class MonthExpensesService {
         return categoryRepository.save(toCategoryType);
     }
 
-    void setYearToNewMonth(final String year, final MonthExpenses toMonth) throws NotFoundException {
+    void setYearToNewMonth(final short year, final MonthExpenses toMonth) throws NotFoundException {
         final YearExpenses Year = yearRepository.findByYear(year)
                 .orElseThrow(() -> new NotFoundException("no year with given id"));
         toMonth.setYear(Year);
@@ -88,7 +88,7 @@ public class MonthExpensesService {
         return new PageImpl<>(categories);
     }
 
-    List<?> findAllByYear(final String year, final boolean CATEGORIES_FLAG_CHOSEN) throws NotFoundException {
+    List<?> findAllByYear(final short year, final boolean CATEGORIES_FLAG_CHOSEN) throws NotFoundException {
 
         Integer yearId  = yearRepository.findByYear(year)
                 .map(result -> result.getId())
@@ -107,7 +107,7 @@ public class MonthExpensesService {
         }
     }
 
-    Page<?> findAllByYear(final Pageable page, final String year, final boolean CATEGORIES_FLAG_CHOSEN) throws NotFoundException {
+    Page<?> findAllByYear(final Pageable page, final short year, final boolean CATEGORIES_FLAG_CHOSEN) throws NotFoundException {
 
         Integer yearId  = yearRepository.findByYear(year)
                 .map(result -> result.getId())
@@ -134,7 +134,7 @@ public class MonthExpensesService {
                 .orElseThrow(() -> new NotFoundException("no month found"));
     }
 
-    YearExpenses findByYear(final String year) throws NotFoundException {
+    YearExpenses findByYear(final short year) throws NotFoundException {
         return yearRepository.findByYear(year)
                 .orElseThrow(() -> new NotFoundException("no year found"));
     }
@@ -168,7 +168,7 @@ public class MonthExpensesService {
         repository.deleteById(id);
     }
 
-    boolean monthLevelValidationSuccess(final String year) {
+    boolean monthLevelValidationSuccess(final short year) {
             return yearRepository.existsByYear(year);
     }
 
@@ -187,14 +187,14 @@ public class MonthExpensesService {
     /**
      *
      * @param unknownMonths List of months
-     * @param year String param 'year' given in URL
+     * @param year short param 'year' given in URL
      * @param PAGEABLE_PARAM_CHOSEN Boolean param checks if any Page param is given in URL
      * @param CATEGORIES_FLAG_CHOSEN Boolean param choose if months should include categories or not
      * @return CollectionModel<PagedModel<MonthFullReadModel>> or CollectionModel<MonthFullReadModel>
      *          or CollectionModel<PagedModel<MonthNoCategoriesReadModel>> or CollectionModel<MonthNoCategoriesReadModel>
      */
     CollectionModel<?> prepareReadMonthsHateoas(final List<?> unknownMonths,
-                                                final String year,
+                                                final short year,
                                                 final boolean PAGEABLE_PARAM_CHOSEN,
                                                 final boolean CATEGORIES_FLAG_CHOSEN) {
 
@@ -245,7 +245,7 @@ public class MonthExpensesService {
      * @return CollectionModel<PagedModel<CategoryNoProcessesReadModel>> or CollectionModel<CategoryNoProcessesReadModel>
      */
     CollectionModel<?> prepareReadOneMonthContentHateoas(final List<CategoryNoProcessesReadModel> categories,
-                                                         final String year,
+                                                         final short year,
                                                          final String month,
                                                          final boolean PAGEABLE_PARAM_CHOSEN) {
 
