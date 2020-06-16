@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 import io.github.organizationApp.monthExpenses.MonthNoCategoriesReadModel;
+import io.github.organizationApp.security.User;
 import javassist.NotFoundException;
+import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -15,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -25,7 +29,7 @@ import java.util.List;
 
 @Controller
 @GeneralExceptionsProcessing
-@RequestMapping("/years")
+@RequestMapping("/moneyapp/years")
 public class YearExpensesController {
     private static final Logger logger = LoggerFactory.getLogger(YearExpensesController.class);
     private final YearExpensesService service;
@@ -90,9 +94,12 @@ public class YearExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
+    // consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @ResponseBody
-    @GetMapping(params = {"!sort","!size","!page"},consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"!sort","!size","!page"})
     ResponseEntity<?> readEmptyYears() {
+
+        User.getUserId();
 
         final boolean PAGEABLE_PARAM_FLAG = false;
         final boolean MONTHS_FLAG = false;
@@ -108,8 +115,9 @@ public class YearExpensesController {
             return ResponseEntity.badRequest().build();
         }
     }
+    //consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @ResponseBody
-    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     ResponseEntity<?> readEmptyYears(final Pageable page) {
 
         final boolean PAGEABLE_PARAM_FLAG = true;

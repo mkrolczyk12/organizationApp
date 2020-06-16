@@ -18,3 +18,9 @@ management:
     web:
       exposure:
         include: '*'
+#keycloak
+keycloak:
+  auth-server-url: 'http://localhost:8180/auth'
+  realm: 'OrganizationApp'
+  resource: 'app-spring-client'
+  public-client: true

@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutionException;
 
 @Controller
 @GeneralExceptionsProcessing
-@RequestMapping("/processes")
+@RequestMapping("/moneyapp/processes")
 public class ProcessController {
     private static final Logger logger = LoggerFactory.getLogger(ProcessController.class);
     private final ProcessService service;

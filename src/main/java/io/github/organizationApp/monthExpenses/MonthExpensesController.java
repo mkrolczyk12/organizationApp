@@ -16,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +27,7 @@ import java.util.List;
 
 @Controller
 @GeneralExceptionsProcessing
-@RequestMapping("/months")
+@RequestMapping("/moneyapp/months")
 public class MonthExpensesController {
     private static final Logger logger = LoggerFactory.getLogger(MonthExpensesController.class);
     private final MonthExpensesService service;
