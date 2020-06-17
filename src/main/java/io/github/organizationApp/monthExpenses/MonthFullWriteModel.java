@@ -25,16 +25,17 @@ public class MonthFullWriteModel {
     public List<CategoryNoProcessesWriteModel> getCategories() {return categories;}
     public void setCategories(final List<CategoryNoProcessesWriteModel> categories) {this.categories = categories;}
 
-    public MonthExpenses toMonth(YearExpenses year) {
+    public MonthExpenses toMonth(YearExpenses year, final String ownerId) {
         var result = new MonthExpenses();
         result.setMonth(month);
         result.setDescription(description);
         result.setCategories(categories
                 .stream()
-                .map(source -> source.toCategoryType(result))
+                .map(source -> source.toCategoryType(result, ownerId))
                 .collect(Collectors.toList())
         );
         result.setYear(year);
+        result.setOwnerId(ownerId);
         return result;
     }
 }

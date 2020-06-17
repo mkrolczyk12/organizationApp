@@ -50,28 +50,30 @@ public class CategoryTypeService {
         return processesRepository.save(toProcess);
     }
 
-    void setMonthToNewCategory(final short year, final String month, final CategoryType toCategory) throws NotFoundException {
-        final Integer yearId = yearRepository.findByYear(year).get().getId();
+    void setMonthAndOwnerToNewCategory(final short year, final String month, final CategoryType toCategory, String ownerId) throws NotFoundException {
+        final Integer yearId = yearRepository.findByYearAndOwnerId(year, ownerId).get().getId();
         MonthExpenses Month = monthRepository.findByMonthAndYearId(month, yearId)
                 .orElseThrow(() -> new NotFoundException("no month founded"));
+        toCategory.setOwnerId(ownerId);
         toCategory.setMonthExpenses(Month);
     }
 
-    void setCategoryToNewProcess(final Integer categoryId, final Process toProcess) throws NotFoundException {
-        CategoryType category = repository.findById(categoryId)
+    void setCategoryAndOwnerToNewProcess(final Integer categoryId, final Process toProcess, final String userId) throws NotFoundException {
+        CategoryType category = repository.findByIdAndOwnerId(categoryId, userId)
                 .orElseThrow(() -> new NotFoundException("no category matches the given query"));
         toProcess.setCategory(category);
+        toProcess.setOwnerId(userId);
     }
 
-    CategoryFullReadModel createCategoryWithProcesses(final MonthExpenses month, final CategoryFullWriteModel source) {
-        CategoryType result = repository.save(source.toCategoryType(month));
+    CategoryFullReadModel createCategoryWithProcesses(final MonthExpenses month, final String userId, final CategoryFullWriteModel source) {
+        CategoryType result = repository.save(source.toCategoryType(month, userId));
 
         return new CategoryFullReadModel(result);
     }
 
-    List<?> findAllByMonthExpensesId(final short year, final String month, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
+    List<?> findAllByMonthExpensesId(final short year, final String month, final String ownerId, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
 
-        Integer yearId  = yearRepository.findByYear(year)
+        Integer yearId  = yearRepository.findByYearAndOwnerId(year, ownerId)
                 .map(result -> result.getId())
                 .orElseThrow(() -> new NotFoundException("no year for given parameter"));
 
@@ -83,16 +85,16 @@ public class CategoryTypeService {
                 .orElseThrow(() -> new NotFoundException("no month for given parameter"));
     }
 
-    Page<?> findAllByMonthExpensesId(final Pageable page, final short year, final String month, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
+    Page<?> findAllByMonthExpensesId(final Pageable page, final short year, final String month, final String ownerId, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
 
-        Integer yearId  = yearRepository.findByYear(year)
+        Integer yearId  = yearRepository.findByYearAndOwnerId(year, ownerId)
                 .map(result -> result.getId())
                 .orElseThrow(() -> new NotFoundException("no year for given parameter"));
 
         return monthRepository.findByMonthAndYearId(month, yearId)
                 .map(Month -> {
                     var monthId = Month.getId();
-                    Page<CategoryType> paged_categories = repository.findAllByMonthExpensesId(page,monthId);
+                    Page<CategoryType> paged_categories = repository.findAllByMonthExpensesIdAndOwnerId(page,monthId, ownerId);
                     List<?> items = paged_categories.toList()
                             .stream()
                             .map(PROCESSES_FLAG_CHOSEN ? CategoryFullReadModel::new : CategoryNoProcessesReadModel::new)
@@ -102,28 +104,28 @@ public class CategoryTypeService {
                 .orElseThrow(() -> new NotFoundException("no month for given parameter"));
     }
 
-    List<Process> findAllProcessesBelongToCategory(final Integer Id) throws NotFoundException {
-        return processesRepository.findAllByCategory_Id(Id)
+    List<Process> findAllProcessesBelongToCategory(final Integer Id, final String ownerId) throws NotFoundException {
+        return processesRepository.findAllByCategory_IdAndOwnerId(Id, ownerId)
                 .orElseThrow(() -> new NotFoundException("no processes found for given category"));
     }
 
-    Page<Process> findAllProcessesBelongToCategory(Pageable page, final Integer Id) throws NotFoundException {
-        return processesRepository.findAllByCategory_Id(page, Id)
+    Page<Process> findAllProcessesBelongToCategory(Pageable page, final Integer Id, final String ownerId) throws NotFoundException {
+        return processesRepository.findAllByCategory_IdAndOwnerId(page, Id, ownerId)
                 .orElseThrow(() -> new NotFoundException("no processes found for given category"));
     }
 
-    CategoryType findById(final Integer id) throws NotFoundException {
-        return repository.findById(id)
+    CategoryType findById(final Integer id, final String ownerId) throws NotFoundException {
+        return repository.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> new NotFoundException("no category found"));
     }
 
-    MonthExpenses findByMonth(final String monthName) throws NotFoundException {
-        return monthRepository.findByMonth(monthName)
+    MonthExpenses findByMonth(final String monthName, final String ownerId) throws NotFoundException {
+        return monthRepository.findByMonthAndOwnerId(monthName, ownerId)
                 .orElseThrow(() -> new NotFoundException("no month found"));
     }
 
-    MonthExpenses findByMonthAndBelongingYear(short year, String month) throws NotFoundException {
-        return monthRepository.findByMonthAndYearId(month, yearRepository.findByYear(year).get().getId())
+    MonthExpenses findByMonthAndBelongingYear(short year, String month, String ownerId) throws NotFoundException {
+        return monthRepository.findByMonthAndYearId(month, yearRepository.findByYearAndOwnerId(year, ownerId).get().getId())
                 .orElseThrow(() -> new NotFoundException("no month found"));
     }
 
@@ -145,11 +147,11 @@ public class CategoryTypeService {
      * @param month - param 'month' given in URL
      * @return true or false
      */
-    boolean categoryTypeLevelValidationSuccess(final short year, final String month) {
+    boolean categoryTypeLevelValidationSuccess(final short year, final String month, final String ownerId) {
         try {
-            return yearRepository.findByYear(year)
+            return yearRepository.findByYearAndOwnerId(year, ownerId)
                     .map(result -> {
-                        if(monthRepository.existsByMonthAndYear(month, result)) {
+                        if(monthRepository.existsByMonthAndYearAndOwnerId(month, result, ownerId)) {
                             return true;
                         } else
                             return false;
@@ -160,8 +162,8 @@ public class CategoryTypeService {
         }
     }
 
-    public boolean checkIfGivenCategoryExist(final String categoryType, MonthExpenses month) {
-        if(repository.existsByTypeAndMonthExpenses(categoryType, month)) {
+    public boolean checkIfGivenCategoryExist(final String categoryType, final MonthExpenses month, final String userId) {
+        if(repository.existsByTypeAndMonthExpensesAndOwnerId(categoryType, month, userId)) {
             return true;
         } else
             return false;
@@ -179,10 +181,11 @@ public class CategoryTypeService {
     CollectionModel<?> prepareReadCategoryTypesHateoas(final List<?> unknownCategories,
                                                             final short year,
                                                             final String month,
+                                                            final String ownerId,
                                                             final boolean PAGEABLE_PARAM_CHOSEN,
                                                             final boolean PROCESSES_FLAG_CHOSEN) {
 
-        final Integer yearId = yearRepository.findByYear(year).get().getId();
+        final Integer yearId = yearRepository.findByYearAndOwnerId(year, ownerId).get().getId();
         final Integer monthId = monthRepository.findByMonthAndYearId(month, yearId).get().getId();
 
         final Link href1 = linkTo(methodOn(CategoryTypeController.class).readEmptyCategoryTypes(year,month)).withSelfRel();

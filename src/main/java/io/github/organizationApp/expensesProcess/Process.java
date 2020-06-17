@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "expenses_process")
-@JsonIgnoreProperties({"id","category"})
+@JsonIgnoreProperties({"id","category","ownerId"})
 public class Process extends RepresentationModel<Process> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +28,8 @@ public class Process extends RepresentationModel<Process> {
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime buy_date;
     private String notes;
+    @Column(name = "owner_id")
+    private String ownerId;
 
     /**
      * ManyToOne relation with CategoryType class
@@ -48,7 +50,7 @@ public class Process extends RepresentationModel<Process> {
     public Process() {
     }
 
-    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description,String transaction_type,String notes, CategoryType categoryType) {
+    public Process(BigDecimal price, String currency, LocalDateTime buy_date,String description,String transaction_type, String notes, CategoryType categoryType, String ownerId) {
         this.price = price;
         this.currency = currency;
         this.buy_date = buy_date;
@@ -56,6 +58,7 @@ public class Process extends RepresentationModel<Process> {
         this.transaction_type = transaction_type;
         this.notes = notes;
         this.category = categoryType;
+        this.ownerId = ownerId;
     }
 
     public Long getId() {return id;}
@@ -78,10 +81,13 @@ public class Process extends RepresentationModel<Process> {
     public String getNotes() {return notes;}
     public void setNotes(final String notes) {this.notes = notes;}
 
+    public String getOwnerId() {return ownerId;}
+    public void setOwnerId(final String ownerId) {this.ownerId = ownerId;}
+
     public CategoryType getCategory() {return category;}
     public void setCategory(final CategoryType category) {this.category = category;}
 
-    public void fullUpdate(Process toUpdate){
+    public void fullUpdate(Process toUpdate) {
         this.price = toUpdate.price;
         this.currency = toUpdate.currency;
         this.buy_date = toUpdate.buy_date;

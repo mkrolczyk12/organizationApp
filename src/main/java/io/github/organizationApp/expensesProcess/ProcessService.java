@@ -2,6 +2,7 @@ package io.github.organizationApp.expensesProcess;
 
 import io.github.organizationApp.categoryExpenses.CategoryTypeRepository;
 import io.github.organizationApp.monthExpenses.MonthExpensesRepository;
+import io.github.organizationApp.security.User;
 import io.github.organizationApp.yearExpenses.YearExpensesRepository;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
@@ -46,21 +47,21 @@ class ProcessService {
     }
 
     @Async
-    public CompletableFuture<List<Process>> findAllAsync() {
-        return CompletableFuture.supplyAsync(() -> repository.findAll());
+    public CompletableFuture<List<Process>> findAllAsync(String userId) {
+        return CompletableFuture.supplyAsync(() -> repository.findAllByOwnerId(userId));
     }
 
     @Async
-    CompletableFuture<Page<Process>> findAllAsync(Pageable page) {
-        return CompletableFuture.supplyAsync(() -> repository.findAll(page));
+    CompletableFuture<Page<Process>> findAllAsync(Pageable page, String userId) {
+        return CompletableFuture.supplyAsync(() -> repository.findAllByOwnerId(page, userId));
     }
 
-    List<Process> findAll() {
-        return repository.findAll();
+    List<Process> findAll(String ownerId) {
+        return repository.findAllByOwnerId(ownerId);
     }
 
-    Page<Process> findAll(Pageable page) {
-        return repository.findAll(page);
+    Page<Process> findAll(Pageable page, String ownerId) {
+        return repository.findAllByOwnerId(page, ownerId);
     }
 
     Optional<Process> findById(final Long id) {
@@ -82,9 +83,9 @@ class ProcessService {
      * @param category String param 'category' given in URL
      * @return true or false
      */
-    boolean processLevelValidationSuccess(final short year, final String month, final String category) {
+    boolean processLevelValidationSuccess(final short year, final String month, final String category, final String ownerId) {
         try {
-            return monthRepository.findByMonthAndYearId(month, yearRepository.findByYear(year).get().getId())
+            return monthRepository.findByMonthAndYearId(month, yearRepository.findByYearAndOwnerId(year, ownerId).get().getId())
                     .map(result -> {
                         if(categoryRepository.existsByTypeAndMonthExpenses_Id(category, result.getId())) {
                             return true;
@@ -113,8 +114,8 @@ class ProcessService {
             each.add(linkTo(methodOn(ProcessController.class).readProcess(each.getId(), YEAR, MONTH, CATEGORY)).withRel("process"));
         }
 
-        Link href1 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withSelfRel();
-        Link href2 = linkTo(methodOn(ProcessController.class).readProcesses("true")).withRel("?{sort,size,page}");
+        Link href1 = linkTo(methodOn(ProcessController.class).readProcesses()).withSelfRel();
+        Link href2 = linkTo(methodOn(ProcessController.class).readProcesses()).withRel("?{sort,size,page}");
 
         if(PAGEABLE_PARAM_CHOSEN) {
             var pagedProcesses = new PageImpl<>(processes);

@@ -23,11 +23,12 @@ public class CategoryNoProcessesWriteModel {
     public List<CategoryProcessWriteModel> getProcesses() {return processes;}
     public void setProcesses(final List<CategoryProcessWriteModel> processes) {this.processes = processes;}
 
-    public CategoryType toCategoryType(final MonthExpenses month) {
+    public CategoryType toCategoryType(final MonthExpenses month, final String ownerId) {
         var result = new CategoryType();
         result.setType(type);
         result.setDescription(description);
         result.setMonthExpenses(month);
+        result.setOwnerId(ownerId);
         return result;
     }
 }

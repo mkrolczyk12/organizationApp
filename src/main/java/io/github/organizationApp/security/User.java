@@ -11,9 +11,8 @@ public class User {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
 
         KeycloakAuthenticationToken principal = (KeycloakAuthenticationToken) request.getUserPrincipal();
-        final String userId = principal.getAccount().getKeycloakSecurityContext().getIdToken().getSubject();
+        final String userId = principal.getAccount().getKeycloakSecurityContext().getToken().getSubject();
 
-        System.out.println(userId);
         return userId;
     }
 }

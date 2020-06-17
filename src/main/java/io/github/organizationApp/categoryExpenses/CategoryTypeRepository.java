@@ -11,16 +11,14 @@ public interface CategoryTypeRepository {
 
     CategoryType save(final CategoryType toCategory);
 
-    List<CategoryType> findAll();
-    Page<CategoryType> findAll(Pageable page);
-    List<CategoryType> findAllByMonthExpensesId(Integer id);
-    Page<CategoryType> findAllByMonthExpensesId(Pageable page, Integer id);
-    Optional<CategoryType> findById(final Integer id);
+    List<CategoryType> findAllByMonthExpensesIdAndOwnerId(Integer id, final String ownerId);
+    Page<CategoryType> findAllByMonthExpensesIdAndOwnerId(Pageable page, Integer id, final String ownerId);
+    Optional<CategoryType> findByIdAndOwnerId(final Integer id, final String ownerId);
 
     boolean existsByTypeAndMonthExpenses_Id(String category, Integer monthId);
-    boolean existsByTypeAndMonthExpenses(String category, MonthExpenses month);
+    boolean existsByTypeAndMonthExpensesAndOwnerId(String category, MonthExpenses month, final String ownerId);
     boolean existsById(Integer id);
-    CategoryType existsByType(String type);
+    CategoryType existsByTypeAndOwnerId(String type, final String ownerId);
 
     CategoryType saveAndFlush(final CategoryType updatedCategoryType);
 

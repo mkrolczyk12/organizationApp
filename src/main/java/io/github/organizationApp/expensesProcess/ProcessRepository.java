@@ -12,10 +12,10 @@ public interface ProcessRepository {
 
     Process save(Process entity);
 
-    List<Process> findAll();
-    Page<Process> findAll(Pageable page);
-    Optional<List<Process>> findAllByCategory_Id(Integer id);
-    Optional<Page<Process>> findAllByCategory_Id(Pageable page, Integer id);
+    List<Process> findAllByOwnerId(String ownerId);
+    Page<Process> findAllByOwnerId(Pageable page, String ownerId);
+    Optional<List<Process>> findAllByCategory_IdAndOwnerId(Integer id, final String ownerId);
+    Optional<Page<Process>> findAllByCategory_IdAndOwnerId(Pageable page, Integer id, final String ownerId);
     Optional<Process> findById(Long id);
 
     Process saveAndFlush(Process process);

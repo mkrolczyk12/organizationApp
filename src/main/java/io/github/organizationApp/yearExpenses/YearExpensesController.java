@@ -6,19 +6,18 @@ import io.github.organizationApp.monthExpenses.MonthExpenses;
 import io.github.organizationApp.monthExpenses.MonthNoCategoriesReadModel;
 import io.github.organizationApp.security.User;
 import javassist.NotFoundException;
-import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -43,17 +42,19 @@ public class YearExpensesController {
     /**
      * JSON:API
      */
+    // consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @Transactional
     @ResponseBody
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping
     ResponseEntity<YearExpenses> addEmptyYear(@RequestBody @Valid final YearExpenses toYear) {
 
+        final String USER_ID = User.getUserId();
         try {
-            if(service.checkIfGivenYearExistAndIfRepresentsNumber(toYear.getYear())) {
+            if(service.checkIfGivenYearExistAndIfRepresentsNumber(toYear.getYear(), USER_ID)) {
                 logger.info("a year '" + toYear.getYear() + "' already exists!");
                 return ResponseEntity.badRequest().build();
             } else {
-                YearExpenses result = service.save(toYear);
+                YearExpenses result = service.addYear(toYear, USER_ID);
                 logger.info("posted new year with id = "+result.getId());
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
             }
@@ -71,19 +72,20 @@ public class YearExpensesController {
     ResponseEntity<MonthExpenses> addMonthToChosenYear(@PathVariable final Integer id,
                                                        @RequestBody @Valid final MonthExpenses toMonth) {
 
-        if(!service.yearLevelValidationSuccess(id)) {
+        final String USER_ID = User.getUserId();
+        if(!service.yearLevelValidationSuccess(id, USER_ID)) {
             logger.info("year level validation failed, no year founded");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            YearExpenses year = service.findById(id);
+            YearExpenses year = service.findById(id, USER_ID);
 
-            if(service.checkIfMonthExistInGivenYear(toMonth.getMonth(), year)) {
+            if(service.checkIfMonthExistInGivenYear(toMonth.getMonth(), year, USER_ID)) {
                 logger.info("a month '" + toMonth.getMonth().toLowerCase() + "' in year '" + year.getYear() + "' already exists!");
                 return ResponseEntity.badRequest().build();
             } else {
-                service.setYearToNewMonth(id, toMonth);
+                service.setYearAndOwnerToNewMonth(id, toMonth, USER_ID);
                 MonthExpenses result = service.addMonth(toMonth);
 
                 logger.info("posted new month to year with id = " + id);
@@ -99,13 +101,12 @@ public class YearExpensesController {
     @GetMapping(params = {"!sort","!size","!page"})
     ResponseEntity<?> readEmptyYears() {
 
-        User.getUserId();
-
+        final String USER_ID = User.getUserId();
         final boolean PAGEABLE_PARAM_FLAG = false;
         final boolean MONTHS_FLAG = false;
 
         try {
-            List<?> result = service.findAll(MONTHS_FLAG);
+            List<?> result = service.findAll(MONTHS_FLAG, USER_ID);
             CollectionModel<?> yearsCollection = service.prepareReadYearsHateoas(result, PAGEABLE_PARAM_FLAG, MONTHS_FLAG);
 
             logger.info("exposing all years!");
@@ -120,11 +121,12 @@ public class YearExpensesController {
     @GetMapping
     ResponseEntity<?> readEmptyYears(final Pageable page) {
 
+        final String USER_ID = User.getUserId();
         final boolean PAGEABLE_PARAM_FLAG = true;
         final boolean MONTHS_FLAG = false;
 
         try {
-            List<?> result = service.findAll(page, MONTHS_FLAG).toList();
+            List<?> result = service.findAll(page, MONTHS_FLAG, USER_ID).toList();
             CollectionModel<?> yearsCollection = service.prepareReadYearsHateoas(result, PAGEABLE_PARAM_FLAG, MONTHS_FLAG);
 
             logger.info("exposing all years!");
@@ -138,11 +140,12 @@ public class YearExpensesController {
     @GetMapping(params = {"months", "!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readYearsWithMonths() {
 
+        final String USER_ID = User.getUserId();
         final boolean PAGEABLE_PARAM_FLAG = false;
         final boolean MONTHS_FLAG = true;
 
         try {
-            List<?> result = service.findAll(MONTHS_FLAG);
+            List<?> result = service.findAll(MONTHS_FLAG, USER_ID);
             CollectionModel<?> yearsCollection = service.prepareReadYearsHateoas(result, PAGEABLE_PARAM_FLAG, MONTHS_FLAG);
 
             logger.info("exposing all years + months!");
@@ -156,11 +159,12 @@ public class YearExpensesController {
     @GetMapping(params = {"months"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readYearsWithMonths(final Pageable page) {
 
+        final String USER_ID = User.getUserId();
         final boolean PAGEABLE_PARAM_FLAG = true;
         final boolean MONTHS_FLAG = true;
 
         try {
-            List<?> result = service.findAll(page, MONTHS_FLAG).toList();
+            List<?> result = service.findAll(page, MONTHS_FLAG, USER_ID).toList();
             CollectionModel<?> yearsCollection = service.prepareReadYearsHateoas(result, PAGEABLE_PARAM_FLAG, MONTHS_FLAG);
 
             logger.info("exposing all years + months!");
@@ -174,12 +178,13 @@ public class YearExpensesController {
     @GetMapping(value = "/{id}", params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneYearContent(@PathVariable final Integer id) {
 
+        final String USER_ID = User.getUserId();
         final boolean PAGEABLE_PARAM_FLAG = false;
 
         try {
-            List<MonthNoCategoriesReadModel> result = service.findAllMonthsBelongToYear(id);
-            short year = service.findById(id).getYear();
-            CollectionModel<?> yearCollection = service.prepareReadOneYearContentHateoas(result, year, PAGEABLE_PARAM_FLAG);
+            List<MonthNoCategoriesReadModel> result = service.findAllMonthsBelongToYear(id, USER_ID);
+            short year = service.findById(id, USER_ID).getYear();
+            CollectionModel<?> yearCollection = service.prepareReadOneYearContentHateoas(result, year, USER_ID, PAGEABLE_PARAM_FLAG);
 
             logger.info("exposing '" + year + "' year content");
             return ResponseEntity.ok(yearCollection);
@@ -196,12 +201,13 @@ public class YearExpensesController {
     ResponseEntity<?> readOneYearContent(final Pageable page,
                                          @PathVariable final Integer id) {
 
+        final String USER_ID = User.getUserId();
         final boolean PAGEABLE_PARAM_FLAG = true;
 
         try {
-            List<MonthNoCategoriesReadModel> result = service.findAllMonthsBelongToYear(page, id).toList();
-            short year = service.findById(id).getYear();
-            CollectionModel<?> yearCollection = service.prepareReadOneYearContentHateoas(result, year, PAGEABLE_PARAM_FLAG);
+            List<MonthNoCategoriesReadModel> result = service.findAllMonthsBelongToYear(page, id, USER_ID).toList();
+            short year = service.findById(id, USER_ID).getYear();
+            CollectionModel<?> yearCollection = service.prepareReadOneYearContentHateoas(result, year, USER_ID, PAGEABLE_PARAM_FLAG);
 
             logger.info("exposing '" + year + "' year content");
             return ResponseEntity.ok(yearCollection);
@@ -219,16 +225,17 @@ public class YearExpensesController {
     ResponseEntity<Object> fullUpdateYear(@PathVariable final Integer id,
                                           @RequestBody @Valid final YearExpenses toUpdate) {
 
-        if(!service.yearLevelValidationSuccess(id)) {
+        final String USER_ID = User.getUserId();
+        if(!service.yearLevelValidationSuccess(id, USER_ID)) {
             logger.info("year level validation failed, no year founded");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            if(service.checkIfGivenYearExistAndIfRepresentsNumber(toUpdate.getYear())) {
+            if(service.checkIfGivenYearExistAndIfRepresentsNumber(toUpdate.getYear(), USER_ID)) {
                 return ResponseEntity.badRequest().build();
             } else {
-                YearExpenses year = service.findById(id);
+                YearExpenses year = service.findById(id, USER_ID);
                 year.fullUpdate(toUpdate);
 
                 service.save(year);
@@ -249,20 +256,21 @@ public class YearExpensesController {
     public ResponseEntity<Object> partUpdateYear(@PathVariable final Integer id,
                                                  @Valid final HttpServletRequest request) {
 
-        if(!service.yearLevelValidationSuccess(id)) {
+        final String USER_ID = User.getUserId();
+        if(!service.yearLevelValidationSuccess(id, USER_ID)) {
             logger.info("year level validation failed, no year founded");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            YearExpenses year = service.findById(id);
+            YearExpenses year = service.findById(id, USER_ID);
             short yearBeforeUpdate = year.getYear();
 
             YearExpenses updatedYear = objectMapper.readerForUpdating(year).readValue(request.getReader());
             short yearAfterUpdate = updatedYear.getYear();
 
             if(!(yearBeforeUpdate == yearAfterUpdate)) {
-                if(service.checkIfGivenYearExistAndIfRepresentsNumber(yearAfterUpdate)) {
+                if(service.checkIfGivenYearExistAndIfRepresentsNumber(yearAfterUpdate, USER_ID)) {
                     throw new IllegalStateException();
                 }
             }
@@ -283,14 +291,14 @@ public class YearExpensesController {
     @DeleteMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteYear(@PathVariable final Integer id) {
 
-        if(!service.yearLevelValidationSuccess(id)) {
+        final String USER_ID = User.getUserId();
+        if(!service.yearLevelValidationSuccess(id, USER_ID)) {
             logger.info("year level validation failed, no year founded");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-
-            service.deleteYear(id);
+            service.deleteYear(id, USER_ID);
             logger.warn("deleted year with id = " + id);
             return ResponseEntity.ok().build();
         } catch (DataAccessException e) {

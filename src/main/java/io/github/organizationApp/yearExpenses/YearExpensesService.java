@@ -33,34 +33,42 @@ class YearExpensesService {
         this.monthService = monthService;
     }
 
-    YearExpenses save(final YearExpenses year) {return repository.save(year);}
+    YearExpenses addYear(final YearExpenses year, final String ownerId) {
+        year.setOwnerId(ownerId);
+        return repository.save(year);
+    }
 
-    void setYearToNewMonth(final Integer yearId, final MonthExpenses toMonth) throws NotFoundException {
-        YearExpenses Year = repository.findById(yearId)
+    YearExpenses save(final YearExpenses year) {
+        return repository.save(year);
+    }
+
+    void setYearAndOwnerToNewMonth(final Integer yearId, final MonthExpenses toMonth, final String ownerId) throws NotFoundException {
+        YearExpenses Year = repository.findByIdAndOwnerId(yearId, ownerId)
                 .orElseThrow(() -> new NotFoundException("no year with given id"));
         toMonth.setYear(Year);
+        toMonth.setOwnerId(ownerId);
     }
 
     MonthExpenses addMonth(final MonthExpenses toMonthExpenses) {
         return monthRepository.save(toMonthExpenses);
     }
 
-    List<?> findAll(final boolean MONTHS_FLAG_CHOSEN) {
+    List<?> findAll(final boolean MONTHS_FLAG_CHOSEN, final String ownerId) {
         if(MONTHS_FLAG_CHOSEN) {
-            return repository.findAll()
+            return repository.findAllByOwnerId(ownerId)
                     .stream()
                     .map(YearFullReadModel::new)
                     .collect(Collectors.toList());
         } else {
-            return repository.findAll()
+            return repository.findAllByOwnerId(ownerId)
                     .stream()
                     .map(YearNoMonthsReadModel::new)
                     .collect(Collectors.toList());
         }
     }
 
-    Page<?> findAll(Pageable page, final boolean MONTHS_FLAG_CHOSEN) {
-        Page<YearExpenses> pagedYears = repository.findAll(page);
+    Page<?> findAll(Pageable page, final boolean MONTHS_FLAG_CHOSEN, final String ownerId) {
+        Page<YearExpenses> pagedYears = repository.findAllByOwnerId(page, ownerId);
         List<?> items;
         if(MONTHS_FLAG_CHOSEN) {
             items = pagedYears.toList()
@@ -76,15 +84,15 @@ class YearExpensesService {
         return new PageImpl(items);
     }
 
-    List<MonthNoCategoriesReadModel> findAllMonthsBelongToYear(final Integer id) {
-        return monthRepository.findAllByYearId(id)
+    List<MonthNoCategoriesReadModel> findAllMonthsBelongToYear(final Integer id, final String ownerId) {
+        return monthRepository.findAllByYearIdAndOwnerId(id, ownerId)
                 .stream()
                 .map(MonthNoCategoriesReadModel::new)
                 .collect(Collectors.toList());
     }
 
-    Page<MonthNoCategoriesReadModel> findAllMonthsBelongToYear(Pageable page, final Integer monthId) {
-        List<MonthNoCategoriesReadModel> months = monthRepository.findAllByYearId(page, monthId)
+    Page<MonthNoCategoriesReadModel> findAllMonthsBelongToYear(Pageable page, final Integer monthId, final String ownerId) {
+        List<MonthNoCategoriesReadModel> months = monthRepository.findAllByYearIdAndOwnerId(page, monthId, ownerId)
                 .stream()
                 .map(MonthNoCategoriesReadModel::new)
                 .collect(Collectors.toList());
@@ -92,36 +100,37 @@ class YearExpensesService {
         return new PageImpl<>(months);
     }
 
-    YearExpenses findById(final Integer id) throws NotFoundException {
-        return repository.findById(id)
+    YearExpenses findById(final Integer id, final String ownerId) throws NotFoundException {
+        return repository.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> new NotFoundException("no year with given parameter"));
     }
 
-    boolean existsByYear(short year) {
-        return repository.existsByYear(year);
+    boolean existsByYear(short year, final String ownerId) {
+        return repository.existsByYearAndOwnerId(year, ownerId);
     }
 
-    boolean yearLevelValidationSuccess(final Integer id) {
-        return repository.existsById(id);
+    boolean yearLevelValidationSuccess(final Integer id, final String ownerId) {
+        return repository.existsByIdAndOwnerId(id, ownerId);
     }
 
     YearExpenses saveAndFlush(final YearExpenses updatedYear) {
         return repository.saveAndFlush(updatedYear);
     }
 
-    void deleteYear(final Integer id) {
-        repository.deleteById(id);
+    void deleteYear(final Integer id, final String ownerId) {
+        repository.deleteByIdAndOwnerId(id, ownerId);
     }
 
-    boolean checkIfGivenYearExistAndIfRepresentsNumber(final short year) {
-        if (repository.existsByYear(year)) {
+    // TODO -> zabezpieczenie w razie gdyby ktos podał cos innego niz cyfre
+    boolean checkIfGivenYearExistAndIfRepresentsNumber(final short year, final String ownerId) {
+        if (repository.existsByYearAndOwnerId(year, ownerId)) {
             return true;
         } else
             return false;
     }
 
-    boolean checkIfMonthExistInGivenYear(final String monthName, final YearExpenses year) {
-        return monthService.checkIfGivenMonthNameExist(monthName, year);
+    boolean checkIfMonthExistInGivenYear(final String monthName, final YearExpenses year, final String ownerId) {
+        return monthService.checkIfGivenMonthNameExist(monthName, year, ownerId);
     }
 
     /**
@@ -174,10 +183,11 @@ class YearExpensesService {
 
     CollectionModel<?> prepareReadOneYearContentHateoas(final List<MonthNoCategoriesReadModel> months,
                                                         final short year,
+                                                        final String ownerId,
                                                         final boolean PAGEABLE_PARAM_CHOSEN) {
 
         months.forEach(Month -> Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}")));
-        final Integer yearId = repository.findByYear(year).get().getId();
+        final Integer yearId = repository.findByYearAndOwnerId(year, ownerId).get().getId();
         final Link href1 = linkTo(methodOn(YearExpensesController.class).readOneYearContent(yearId)).withSelfRel();
         final Link href2 = linkTo(methodOn(YearExpensesController.class).readOneYearContent(yearId)).withRel("?{sort,size,page}");
         final Link href3 = linkTo(methodOn(YearExpensesController.class).readOneYearContent(yearId)).withRel("POST_month");

@@ -6,7 +6,8 @@ DROP TABLE IF EXISTS expenses_process;
 CREATE TABLE year_expenses (
     id INT PRIMARY KEY AUTO_INCREMENT,
     year SMALLINT NOT NULL,
-    description VARCHAR(200)
+    description VARCHAR(200),
+    owner_id VARCHAR(36)
 );
 CREATE TABLE month_expenses (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -14,6 +15,7 @@ CREATE TABLE month_expenses (
     CHECK (month IN ('january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')),
     description VARCHAR(200),
     year_id INT,
+    owner_id VARCHAR(36),
     FOREIGN KEY (year_id) REFERENCES year_expenses (id)
 );
 CREATE TABLE category_expenses (
@@ -21,6 +23,7 @@ CREATE TABLE category_expenses (
     type VARCHAR(30) NOT NULL,
     description VARCHAR(200),
     month_id INT,
+    owner_id VARCHAR(36),
     FOREIGN KEY (month_id) REFERENCES month_expenses (id)
 );
 CREATE TABLE expenses_process (
@@ -34,6 +37,7 @@ CREATE TABLE expenses_process (
     created_on DATETIME NULL,
     updated_on DATETIME NULL,
     category_id INT,
+    owner_id VARCHAR(36),
     FOREIGN KEY (category_id) REFERENCES category_expenses (id)
 );
 
@@ -44,7 +48,8 @@ DROP TABLE IF EXISTS month_salary;
 CREATE TABLE year_salary (
     id INT PRIMARY KEY AUTO_INCREMENT,
     year SMALLINT NOT NULL,
-    description VARCHAR(200)
+    description VARCHAR(200),
+    owner_id VARCHAR(36)
 );
 CREATE TABLE month_salary (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -56,5 +61,6 @@ CREATE TABLE month_salary (
     company VARCHAR(100),
     notes VARCHAR(200),
     year_id INT,
+    owner_id VARCHAR(36),
     FOREIGN KEY (year_id) REFERENCES year_salary (id)
 );

@@ -1,5 +1,6 @@
 package io.github.organizationApp.categoryExpenses;
 
+import io.github.organizationApp.monthExpenses.MonthExpenses;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -13,4 +14,5 @@ interface SqlCategoryTypeRepository extends CategoryTypeRepository, JpaRepositor
     @Query("from CategoryType c join fetch c.processes")
     List<CategoryType> findAll();
     // TODO -> trzeba porobic tak dla wsztstkich zarowno category,month jak i year
+
 }

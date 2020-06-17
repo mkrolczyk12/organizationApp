@@ -9,24 +9,15 @@ import java.util.Optional;
 
 public interface MonthExpensesRepository {
     MonthExpenses save(MonthExpenses entity);
-
-    List<MonthExpenses> findAll();
-    Page<MonthExpenses> findAll(Pageable page);
-    List<MonthExpenses> findAllByYearId(Integer yearId);
-    Page<MonthExpenses> findAllByYearId(Pageable page, Integer yearId);
-    Optional<MonthExpenses> findById(Integer id);
-    Optional<MonthExpenses> findByMonth(String month);
-    Optional<MonthExpenses> findByMonthAndYearId(final String month, Integer yearId);
-
-    MonthExpenses findByYearId(Integer yearId);
-    boolean existsByYearId(Integer yearId);
-    boolean existsByMonthAndYearId(String month, Integer yearId);
-    boolean existsByMonthAndYear(String month, YearExpenses year);
-
-    boolean existsById(Integer id);
-    boolean existsByMonth(String month);
-
     MonthExpenses saveAndFlush(MonthExpenses month);
 
-    void deleteById(Integer id);
+    List<MonthExpenses> findAllByYearIdAndOwnerId(Integer yearId, final String ownerId);
+    Page<MonthExpenses> findAllByYearIdAndOwnerId(Pageable page, Integer yearId, final String ownerId);
+    Optional<MonthExpenses> findByIdAndOwnerId(Integer id, final String ownerId);
+    Optional<MonthExpenses> findByMonthAndOwnerId(String month, final String ownerId);
+    Optional<MonthExpenses> findByMonthAndYearId(final String month, Integer yearId);
+
+    boolean existsByMonthAndYearAndOwnerId(String month, YearExpenses year, final String ownerId);
+
+    void deleteByIdAndOwnerId(Integer id, final String ownerId);
 }

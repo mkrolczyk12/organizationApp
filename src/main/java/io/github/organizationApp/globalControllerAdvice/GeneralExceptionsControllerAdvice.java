@@ -3,6 +3,7 @@ package io.github.organizationApp.globalControllerAdvice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -21,52 +22,53 @@ public class GeneralExceptionsControllerAdvice {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
-        logger.warn("captured RuntimeException");
+        logger.warn("captured RuntimeException: " + e.getMessage());
         return ResponseEntity.notFound().build();
     }
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException e) {
-        logger.warn("captured IllegalArgumentException");
-        return ResponseEntity.notFound().build();
+        logger.warn("captured IllegalArgumentException: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
     }
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<?> handleNullPointer(NullPointerException e) {
-        logger.warn("captured handleNullPointerException");
+        logger.warn("captured handleNullPointerException: " + e.getMessage());
+        e.printStackTrace();
         return ResponseEntity.notFound().build();
     }
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<?> handleIllegalState(IllegalStateException e) {
-        logger.warn("captured handleIllegalStateException");
+        logger.warn("captured handleIllegalStateException: " + e.getMessage());
         return ResponseEntity.badRequest().build();
     }
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<?> handleConstraintViolation(ConstraintViolationException e) {
-        logger.warn("captured ConstraintViolationException");
+        logger.warn("captured ConstraintViolationException: " + e.getMessage());
         return ResponseEntity.badRequest().build();
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
-        logger.warn("captured HttpMessageNotReadableException");
-        return ResponseEntity.badRequest().build();
+        logger.warn("captured HttpMessageNotReadableException: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error Message");
     }
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<?> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException e) {
-        logger.warn("captured HHttpMediaTypeNotSupportedException: request content type not supported");
+        logger.warn("captured HHttpMediaTypeNotSupportedException: " + e.getMessage());
         return ResponseEntity.badRequest().build();
     }
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<?> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException e) {
-        logger.warn("captured HttpRequestMethodNotSupportedException: given request method is not implemented");
+        logger.warn("captured HttpRequestMethodNotSupportedException: " + e.getMessage());
         return ResponseEntity.badRequest().build();
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
-        logger.warn("captured MethodArgumentNotValidException: failed request validation");
+        logger.warn("captured MethodArgumentNotValidException: " + e.getMessage());
         return ResponseEntity.badRequest().build();
     }
     @ExceptionHandler(UnsatisfiedServletRequestParameterException.class)
     public ResponseEntity<?> handleUnsatisfiedServletRequestParameter(final UnsatisfiedServletRequestParameterException e) {
-        logger.warn("captured UnsatisfiedServletRequestParameterException: Parameter conditions not met for actual request parameters");
+        logger.warn("captured UnsatisfiedServletRequestParameterException: " + e.getMessage());
         return ResponseEntity.notFound().build();
     }
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -86,7 +88,7 @@ public class GeneralExceptionsControllerAdvice {
     }
     @ExceptionHandler(ClassCastException.class)
     public ResponseEntity<?> handleClassCast(final ClassCastException e) {
-        logger.warn("captured ClassCastException: request body validation failed");
+        logger.warn("captured ClassCastException: " + e.getMessage());
         return ResponseEntity.badRequest().build();
     }
     @ExceptionHandler(PropertyReferenceException.class)
@@ -96,7 +98,7 @@ public class GeneralExceptionsControllerAdvice {
     }
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<?> handleNoSuchElement(final NoSuchElementException e) {
-        logger.warn("captured NoSuchElementException: no value present");
+        logger.warn("captured NoSuchElementException: " + e.getMessage());
         return ResponseEntity.badRequest().build();
     }
 }

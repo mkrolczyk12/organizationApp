@@ -11,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "category_expenses")
-@JsonIgnoreProperties({"id","monthExpenses"})
+@JsonIgnoreProperties({"id","monthExpenses","ownerId"})
 public class CategoryType extends RepresentationModel<CategoryType> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +28,8 @@ public class CategoryType extends RepresentationModel<CategoryType> {
     @ManyToOne
     @JoinColumn(name = "month_id")
     private MonthExpenses monthExpenses;
+    @Column(name = "owner_id")
+    private String ownerId;
 
     /**
      * Hibernate use it
@@ -38,6 +40,7 @@ public class CategoryType extends RepresentationModel<CategoryType> {
     public CategoryType(CategoryType source) {
         this.type = source.type.toLowerCase();
         this.description = source.description;
+        this.ownerId = source.ownerId;
     }
 
     public int getId() {return id;}
@@ -53,6 +56,9 @@ public class CategoryType extends RepresentationModel<CategoryType> {
 
     public MonthExpenses getMonthExpenses() {return monthExpenses;}
     public void setMonthExpenses(final MonthExpenses monthExpenses) {this.monthExpenses = monthExpenses;}
+
+    public String getOwnerId() {return ownerId;}
+    public void setOwnerId(final String ownerId) {this.ownerId = ownerId;}
 
     void fullUpdate(final CategoryType toUpdate) {
         this.type = toUpdate.type.toLowerCase();

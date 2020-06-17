@@ -5,6 +5,7 @@ import io.github.organizationApp.expensesProcess.Process;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 import io.github.organizationApp.monthExpenses.MonthExpensesRepository;
+import io.github.organizationApp.security.User;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +33,10 @@ public class CategoryTypeController {
     private static final Logger logger = LoggerFactory.getLogger(CategoryTypeController.class);
     private final CategoryTypeService service;
     private final ObjectMapper objectMapper;
-    private final MonthExpensesRepository repository;
 
-    CategoryTypeController(final CategoryTypeService service, final ObjectMapper objectMapper, MonthExpensesRepository repo) {
+    CategoryTypeController(final CategoryTypeService service, final ObjectMapper objectMapper) {
         this.service = service;
         this.objectMapper = objectMapper;
-        this.repository = repo;
     }
 
     /**
@@ -50,20 +49,21 @@ public class CategoryTypeController {
                                                       @RequestParam(value = "month") final String MONTH_PARAM,
                                                       @RequestBody @Valid final CategoryType toCategory) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, USER_ID)) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            MonthExpenses month = service.findByMonth(MONTH_PARAM);
+            MonthExpenses month = service.findByMonth(MONTH_PARAM, USER_ID);
 
-            if(service.checkIfGivenCategoryExist(toCategory.getType(), month)) {
+            if(service.checkIfGivenCategoryExist(toCategory.getType(), month, USER_ID)) {
                 logger.info("a category '" + toCategory.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" +MONTH_PARAM + "' already exists!");
                 return ResponseEntity.badRequest().build();
             }
             else {
-                service.setMonthToNewCategory(YEAR_PARAM, MONTH_PARAM, toCategory);
+                service.setMonthAndOwnerToNewCategory(YEAR_PARAM, MONTH_PARAM, toCategory, USER_ID);
                 CategoryType result = service.save(toCategory);
                 logger.info("posted new empty category type with id = "+result.getId());
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
@@ -80,20 +80,21 @@ public class CategoryTypeController {
                                                                        @RequestParam(value = "month") final String MONTH_PARAM,
                                                                        @RequestBody @Valid final CategoryFullWriteModel toCategory) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID)) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            MonthExpenses month = service.findByMonth(MONTH_PARAM);
+            MonthExpenses month = service.findByMonth(MONTH_PARAM, USER_ID);
 
-            if(service.checkIfGivenCategoryExist(toCategory.getType(), month)) {
+            if(service.checkIfGivenCategoryExist(toCategory.getType(), month, USER_ID)) {
                 logger.info("a category '" + toCategory.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" +MONTH_PARAM + "' already exists!");
                 return ResponseEntity.badRequest().build();
             } else {
-                MonthExpenses belongingMonth = service.findByMonthAndBelongingYear(YEAR_PARAM, MONTH_PARAM);
-                CategoryFullReadModel result = service.createCategoryWithProcesses(belongingMonth, toCategory);
+                MonthExpenses belongingMonth = service.findByMonthAndBelongingYear(YEAR_PARAM, MONTH_PARAM, USER_ID);
+                CategoryFullReadModel result = service.createCategoryWithProcesses(belongingMonth, USER_ID, toCategory);
 
                 logger.info("posted new category type + processes content, with id = " + result.getId());
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
@@ -111,13 +112,14 @@ public class CategoryTypeController {
                                                               @RequestParam(value = "month") final String MONTH_PARAM,
                                                               @RequestBody @Valid final Process toProcess) {
 
-        if(!(service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM) && service.existsById(id))) {
+        final String USER_ID = User.getUserId();
+        if(!(service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID) && service.existsById(id))) {
             logger.info("category level validation failed, no relation between given year, month and category id");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            service.setCategoryToNewProcess(id, toProcess);
+            service.setCategoryAndOwnerToNewProcess(id, toProcess, USER_ID);
             Process result = service.addProcess(toProcess);
 
             logger.info("posted new process to category with id = " + id);
@@ -132,7 +134,8 @@ public class CategoryTypeController {
     public ResponseEntity<?> readEmptyCategoryTypes(@RequestParam(value = "year") final short YEAR_PARAM,
                                                     @RequestParam(value = "month") final String MONTH_PARAM) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID)) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
@@ -141,8 +144,8 @@ public class CategoryTypeController {
         final boolean PROCESSES_FLAG = false;
 
         try {
-            List<?> result = service.findAllByMonthExpensesId(YEAR_PARAM, MONTH_PARAM, PROCESSES_FLAG);
-            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
+            List<?> result = service.findAllByMonthExpensesId(YEAR_PARAM, MONTH_PARAM, USER_ID, PROCESSES_FLAG);
+            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, USER_ID, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
 
             logger.info("exposing all categories!");
             return ResponseEntity.ok(categoryTypeCollection);
@@ -160,7 +163,8 @@ public class CategoryTypeController {
                                             @RequestParam(value = "year") final short YEAR_PARAM,
                                             @RequestParam(value = "month") final String MONTH_PARAM) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID)) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
@@ -169,8 +173,8 @@ public class CategoryTypeController {
         final boolean PROCESSES_FLAG = false;
 
         try {
-            List<?> result = service.findAllByMonthExpensesId(page, YEAR_PARAM, MONTH_PARAM, PROCESSES_FLAG).toList();
-            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
+            List<?> result = service.findAllByMonthExpensesId(page, YEAR_PARAM, MONTH_PARAM, USER_ID, PROCESSES_FLAG).toList();
+            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, USER_ID, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
 
             logger.info("exposing all categories!");
             return ResponseEntity.ok(categoryTypeCollection);
@@ -187,7 +191,8 @@ public class CategoryTypeController {
     public ResponseEntity<?> readCategoryTypesWithProcesses(@RequestParam(value = "year") final short YEAR_PARAM,
                                                             @RequestParam(value = "month") final String MONTH_PARAM) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, User.getUserId())) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
@@ -195,8 +200,8 @@ public class CategoryTypeController {
         try {
             final boolean PAGEABLE_PARAM_FLAG = false;
             final boolean PROCESSES_FLAG = true;
-            List<?> result = service.findAllByMonthExpensesId(YEAR_PARAM, MONTH_PARAM, PROCESSES_FLAG);
-            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
+            List<?> result = service.findAllByMonthExpensesId(YEAR_PARAM, MONTH_PARAM, USER_ID, PROCESSES_FLAG);
+            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, USER_ID, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
 
             logger.info("exposing all categories!");
             return ResponseEntity.ok(categoryTypeCollection);
@@ -214,7 +219,8 @@ public class CategoryTypeController {
                                                      @RequestParam(value = "year") final short YEAR_PARAM,
                                                      @RequestParam(value = "month") final String MONTH_PARAM) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, User.getUserId())) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
@@ -222,8 +228,8 @@ public class CategoryTypeController {
         try {
             final boolean PAGEABLE_PARAM_FLAG = true;
             final boolean PROCESSES_FLAG = true;
-            List<?> result = service.findAllByMonthExpensesId(page, YEAR_PARAM, MONTH_PARAM, PROCESSES_FLAG).toList();
-            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
+            List<?> result = service.findAllByMonthExpensesId(page, YEAR_PARAM, MONTH_PARAM, USER_ID, PROCESSES_FLAG).toList();
+            CollectionModel<?> categoryTypeCollection = service.prepareReadCategoryTypesHateoas(result, YEAR_PARAM, MONTH_PARAM, USER_ID, PAGEABLE_PARAM_FLAG, PROCESSES_FLAG);
 
             logger.info("exposing all categories!");
             return ResponseEntity.ok(categoryTypeCollection);
@@ -241,7 +247,8 @@ public class CategoryTypeController {
                                                         @RequestParam(value = "year") final short YEAR_PARAM,
                                                         @RequestParam(value = "month") final String MONTH_PARAM) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID)) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
@@ -249,8 +256,8 @@ public class CategoryTypeController {
         final boolean PAGEABLE_PARAM_FLAG = false;
 
         try {
-            List<Process> result = service.findAllProcessesBelongToCategory(id);
-            String category = service.findById(id).getType();
+            List<Process> result = service.findAllProcessesBelongToCategory(id, USER_ID);
+            String category = service.findById(id, USER_ID).getType();
             CollectionModel<?> categoryCollection = service.prepareReadOneCategoryTypeContentHateoas(result, YEAR_PARAM, MONTH_PARAM, category, PAGEABLE_PARAM_FLAG);
 
             logger.info("exposing '"+ category + "' category content");
@@ -270,7 +277,8 @@ public class CategoryTypeController {
                                                  @RequestParam(value = "year") final short YEAR_PARAM,
                                                  @RequestParam(value = "month") final String MONTH_PARAM) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID)) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
@@ -278,8 +286,8 @@ public class CategoryTypeController {
         final boolean PAGEABLE_PARAM_FLAG = true;
 
         try {
-            List<Process> result = service.findAllProcessesBelongToCategory(page, id).toList();
-            String category = service.findById(id).getType();
+            List<Process> result = service.findAllProcessesBelongToCategory(page, id, USER_ID).toList();
+            String category = service.findById(id, USER_ID).getType();
             CollectionModel<?> categoryCollection = service.prepareReadOneCategoryTypeContentHateoas(result, YEAR_PARAM, MONTH_PARAM, category, PAGEABLE_PARAM_FLAG);
 
             logger.info("exposing '"+ category + "' category content");
@@ -300,20 +308,20 @@ public class CategoryTypeController {
                                                   @RequestParam(value = "month") final String MONTH_PARAM,
                                                   @RequestBody @Valid final CategoryType toUpdate) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID)) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            MonthExpenses month = service.findByMonth(MONTH_PARAM);
+            MonthExpenses month = service.findByMonth(MONTH_PARAM, USER_ID);
 
-            if(service.checkIfGivenCategoryExist(toUpdate.getType(), month)) {
+            if(service.checkIfGivenCategoryExist(toUpdate.getType(), month, USER_ID)) {
                 logger.info("a category '" + toUpdate.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" +MONTH_PARAM + "' already exists!");
                 return ResponseEntity.badRequest().build();
             } else {
-                CategoryType category = service.findById(id);
-                final String previousCategoryName = category.getType();
+                CategoryType category = service.findById(id, USER_ID);
                 category.fullUpdate(toUpdate);
 
                 service.save(category);
@@ -333,22 +341,23 @@ public class CategoryTypeController {
                                                          @RequestParam(value = "month") final String MONTH_PARAM,
                                                          @Valid final HttpServletRequest request) {
 
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM)) {
+        final String USER_ID = User.getUserId();
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID)) {
             logger.info("category level validation failed, no relation between given year and month");
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            MonthExpenses month = service.findByMonth(MONTH_PARAM);
+            MonthExpenses month = service.findByMonth(MONTH_PARAM, USER_ID);
 
-            CategoryType category = service.findById(id);
+            CategoryType category = service.findById(id, USER_ID);
             String categoryBeforeUpdate = category.getType().toLowerCase();
 
             CategoryType updatedCategoryType = objectMapper.readerForUpdating(category).readValue(request.getReader());
             String categoryAfterUpdate = updatedCategoryType.getType();
 
             if(!categoryBeforeUpdate.equals(categoryAfterUpdate)) {
-                if(service.checkIfGivenCategoryExist(categoryAfterUpdate, month)) {
+                if(service.checkIfGivenCategoryExist(categoryAfterUpdate, month, USER_ID)) {
                     logger.info("category '" + updatedCategoryType.getType().toLowerCase() + "' in year '" + YEAR_PARAM + "' and month '" + MONTH_PARAM + "' already exists!");
                     throw new IllegalStateException();
                 }
@@ -368,12 +377,13 @@ public class CategoryTypeController {
                                               @RequestParam(value = "year") final short YEAR_PARAM,
                                               @RequestParam(value = "month") final String MONTH_PARAM) {
 
-        if(!(service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM) && service.existsById(id))) {
+        final String USER_ID = User.getUserId();
+        if(!(service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID) && service.existsById(id))) {
             logger.info("category level validation failed, no relation between given year, month and category id");
             return ResponseEntity.badRequest().build();
         }
         try {
-            String categoryName = service.findById(id).getType();
+            String categoryName = service.findById(id, USER_ID).getType();
 
             service.deleteCategoryType(id);
             logger.warn("deleted category '" + categoryName + "'");

@@ -3,6 +3,7 @@ package io.github.organizationApp.expensesProcess;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.organizationApp.categoryExpenses.CategoryTypeController;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
+import io.github.organizationApp.security.User;
 import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,15 +44,17 @@ public class ProcessController {
     /**
      * JSON:API
      */
+    //consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @Timed(value = "controller.process.readProcesses", histogram = true, percentiles = {0.5,0.95,0.99})
     @ResponseBody
-    @GetMapping(params = {"all","!sort","!size","!page"},consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> readProcesses(@RequestParam(value = "all") final String ALL_PARAM) {
+    @GetMapping(params = {"all","!sort","!size","!page"})
+    public ResponseEntity<?> readProcesses() {
 
         final boolean PAGEABLE_PARAM_FLAG = false;
+
         try {
             logger.info("starting process async finding");
-            CompletableFuture<List<Process>> processes = service.findAllAsync();
+            CompletableFuture<List<Process>> processes = service.findAllAsync(User.getUserId());
             List<Process> result = processes.get();
 
 
@@ -60,22 +63,22 @@ public class ProcessController {
             return ResponseEntity.ok(processCollection);
         } catch (ExecutionException | InterruptedException e) {
             logger.warn("Async finding failed, switched to normal finding");
-            List<Process> result = service.findAll();
+            List<Process> result = service.findAll(User.getUserId());
 
             CollectionModel<?> processCollection = service.addEachProcessLink(result, PAGEABLE_PARAM_FLAG);
             return ResponseEntity.ok(processCollection);
         }
     }
+    //  consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @Timed(value = "controller.process.readProcesses(+Pageable param)", histogram = true, percentiles = {0.5,0.95,0.99})
     @ResponseBody
-    @GetMapping(params = "all", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<?> readProcesses(Pageable page,
-                                    @RequestParam(value = "all") final String ALL_PARAM) {
+    @GetMapping(params = "all")
+    ResponseEntity<?> readProcesses(Pageable page) {
 
         final boolean PAGEABLE_PARAM_FLAG = true;
         try {
             logger.info("starting process async finding");
-            CompletableFuture<Page<Process>> processes = service.findAllAsync(page);
+            CompletableFuture<Page<Process>> processes = service.findAllAsync(page, User.getUserId());
             List<Process> result = processes.get().toList();
 
 
@@ -84,20 +87,21 @@ public class ProcessController {
             return ResponseEntity.ok(processCollection);
         } catch (ExecutionException | InterruptedException e) {
             logger.warn("Async finding failed, switched to normal finding");
-            List<Process> result = service.findAll(page).toList();
+            List<Process> result = service.findAll(page, User.getUserId()).toList();
 
             CollectionModel<?> processCollection = service.addEachProcessLink(result, PAGEABLE_PARAM_FLAG);
             return ResponseEntity.ok(processCollection);
         }
     }
+    // consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE
     @ResponseBody
-    @GetMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{id}")
     public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable final Long id,
                                                             @RequestParam(value = "year") final short YEAR_PARAM,
                                                             @RequestParam(value = "month") final String MONTH_PARAM,
                                                             @RequestParam(value = "category") final String CATEGORY_PARAM) {
 
-        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
+        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM, User.getUserId())) {
             logger.info("process level validation failed, no relation between given year, month and category");
             return ResponseEntity.badRequest().build();
         }
@@ -125,7 +129,7 @@ public class ProcessController {
                                              @RequestParam(value = "category") final String CATEGORY_PARAM,
                                              @RequestBody @Valid final Process toUpdate){
 
-        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
+        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM, User.getUserId())) {
             logger.info("process level validation failed, no relation between given year, month and category");
             return ResponseEntity.badRequest().build();
         }
@@ -147,7 +151,7 @@ public class ProcessController {
                                                     @RequestParam(value = "category") final String CATEGORY_PARAM,
                                                     @Valid final HttpServletRequest request) {
 
-        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
+        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM, User.getUserId())) {
             logger.info("process level validation failed, no relation between given year, month and category");
             return ResponseEntity.badRequest().build();
         }
@@ -173,7 +177,7 @@ public class ProcessController {
                                          @RequestParam(value = "month") final String MONTH_PARAM,
                                          @RequestParam(value = "category") final String CATEGORY_PARAM) {
 
-        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM)) {
+        if(!service.processLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, CATEGORY_PARAM, User.getUserId())) {
             logger.info("process level validation failed, no relation between given year, month and category");
             return ResponseEntity.badRequest().build();
         }

@@ -38,7 +38,7 @@ public class CategoryProcessWriteModel {
     public String getNotes() {return notes;}
     public void setNotes(final String notes) {this.notes = notes;}
 
-    public Process toProcess(final CategoryType categoryType) {
-        return new Process(price,currency,buy_date,description,transaction_type,notes, categoryType);
+    public Process toProcess(final CategoryType categoryType, final String ownerId) {
+        return new Process(price, currency, buy_date, description, transaction_type, notes, categoryType, ownerId);
     }
 }

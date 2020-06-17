@@ -9,14 +9,14 @@ import java.util.Optional;
 public interface YearExpensesRepository {
     YearExpenses save(YearExpenses entity);
 
-    List<YearExpenses> findAll();
-    Page<YearExpenses> findAll(Pageable page);
-    Optional<YearExpenses> findById(Integer id);
-    Optional<YearExpenses> findByYear(short year);
-    boolean existsById(Integer id);
-    boolean existsByYear(short year);
+    List<YearExpenses> findAllByOwnerId(final String ownerId);
+    Page<YearExpenses> findAllByOwnerId(Pageable page, final String ownerId);
+    Optional<YearExpenses> findByIdAndOwnerId(Integer id, final String ownerId);
+    Optional<YearExpenses> findByYearAndOwnerId(short year, final String ownerId);
+    boolean existsByIdAndOwnerId(Integer id, final String ownerId);
+    boolean existsByYearAndOwnerId(short year, final String ownerId);
 
     YearExpenses saveAndFlush(YearExpenses month);
 
-    void deleteById(Integer id);
+    void deleteByIdAndOwnerId(Integer id, final String ownerId);
 }

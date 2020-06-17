@@ -44,8 +44,10 @@ public class SecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter 
         super.configure(http);
         http.authorizeRequests()
                 .mvcMatchers("/moneyapp/*")
-                .hasAnyRole("USER","ADMIN")
+                .hasAnyRole("USER","ADMIN","POSTMAN")
                 .anyRequest()
                 .permitAll();
+        http.csrf().disable();
     }
+
 }
