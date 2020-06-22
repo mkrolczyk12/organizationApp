@@ -19,4 +19,5 @@ public interface YearExpensesRepository {
     YearExpenses saveAndFlush(YearExpenses month);
 
     void deleteByIdAndOwnerId(Integer id, final String ownerId);
+
 }

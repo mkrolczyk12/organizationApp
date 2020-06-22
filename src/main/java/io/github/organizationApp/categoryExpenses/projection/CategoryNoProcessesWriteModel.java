@@ -1,5 +1,6 @@
-package io.github.organizationApp.categoryExpenses;
+package io.github.organizationApp.categoryExpenses.projection;
 
+import io.github.organizationApp.categoryExpenses.CategoryType;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 
 import javax.validation.Valid;

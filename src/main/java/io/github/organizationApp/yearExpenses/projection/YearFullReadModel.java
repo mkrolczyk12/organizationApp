@@ -1,11 +1,10 @@
-package io.github.organizationApp.yearExpenses;
+package io.github.organizationApp.yearExpenses.projection;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.github.organizationApp.monthExpenses.MonthNoCategoriesReadModel;
+import io.github.organizationApp.monthExpenses.projection.MonthNoCategoriesReadModel;
+import io.github.organizationApp.yearExpenses.YearExpenses;
 import org.springframework.hateoas.RepresentationModel;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.stream.Collectors;

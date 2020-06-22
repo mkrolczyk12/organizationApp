@@ -1,9 +1,13 @@
 package io.github.organizationApp.yearExpenses;
 
 import io.github.organizationApp.monthExpenses.*;
+import io.github.organizationApp.monthExpenses.projection.MonthNoCategoriesReadModel;
+import io.github.organizationApp.yearExpenses.projection.YearFullReadModel;
+import io.github.organizationApp.yearExpenses.projection.YearNoMonthsReadModel;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +39,12 @@ class YearExpensesService {
 
     YearExpenses addYear(final YearExpenses year, final String ownerId) {
         year.setOwnerId(ownerId);
-        return repository.save(year);
+        try {
+            return repository.save(year);
+        } catch (RuntimeException e) {
+            logger.warn(e.getMessage());
+            throw new RuntimeException("an error occurred while working with given data");
+        }
     }
 
     YearExpenses save(final YearExpenses year) {
@@ -50,54 +59,86 @@ class YearExpensesService {
     }
 
     MonthExpenses addMonth(final MonthExpenses toMonthExpenses) {
-        return monthRepository.save(toMonthExpenses);
+        try {
+            monthService.checkIfGivenMonthParameterValueRepresentsMonth(toMonthExpenses.getMonth());
+            return monthRepository.save(toMonthExpenses);
+        } catch (DataAccessException e) {
+            throw new IllegalArgumentException("an error occurred while working with data");
+        }
     }
 
     List<?> findAll(final boolean MONTHS_FLAG_CHOSEN, final String ownerId) {
-        if(MONTHS_FLAG_CHOSEN) {
-            return repository.findAllByOwnerId(ownerId)
-                    .stream()
-                    .map(YearFullReadModel::new)
-                    .collect(Collectors.toList());
-        } else {
-            return repository.findAllByOwnerId(ownerId)
-                    .stream()
-                    .map(YearNoMonthsReadModel::new)
-                    .collect(Collectors.toList());
+        try {
+            if(MONTHS_FLAG_CHOSEN) {
+                return repository.findAllByOwnerId(ownerId)
+                        .stream()
+                        .map(YearFullReadModel::new)
+                        .collect(Collectors.toList());
+            } else {
+                return repository.findAllByOwnerId(ownerId)
+                        .stream()
+                        .map(YearNoMonthsReadModel::new)
+                        .collect(Collectors.toList());
+            }
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with data");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("no years found");
         }
     }
 
     Page<?> findAll(Pageable page, final boolean MONTHS_FLAG_CHOSEN, final String ownerId) {
-        Page<YearExpenses> pagedYears = repository.findAllByOwnerId(page, ownerId);
-        List<?> items;
-        if(MONTHS_FLAG_CHOSEN) {
-            items = pagedYears.toList()
-                    .stream()
-                    .map(YearFullReadModel::new)
-                    .collect(Collectors.toList());
-        } else {
-            items = pagedYears.toList()
-                    .stream()
-                    .map(YearNoMonthsReadModel::new)
-                    .collect(Collectors.toList());
+        try {
+            Page<YearExpenses> pagedYears = repository.findAllByOwnerId(page, ownerId);
+            List<?> items;
+
+            if(MONTHS_FLAG_CHOSEN) {
+                items = pagedYears.toList()
+                        .stream()
+                        .map(YearFullReadModel::new)
+                        .collect(Collectors.toList());
+            } else {
+                items = pagedYears.toList()
+                        .stream()
+                        .map(YearNoMonthsReadModel::new)
+                        .collect(Collectors.toList());
+            }
+
+            return new PageImpl(items);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with data");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("no years found");
         }
-        return new PageImpl(items);
     }
 
     List<MonthNoCategoriesReadModel> findAllMonthsBelongToYear(final Integer id, final String ownerId) {
-        return monthRepository.findAllByYearIdAndOwnerId(id, ownerId)
-                .stream()
-                .map(MonthNoCategoriesReadModel::new)
-                .collect(Collectors.toList());
+        try {
+            return monthRepository.findAllByYearIdAndOwnerId(id, ownerId)
+                    .stream()
+                    .map(MonthNoCategoriesReadModel::new)
+                    .collect(Collectors.toList());
+
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with data");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("no months found");
+        }
     }
 
     Page<MonthNoCategoriesReadModel> findAllMonthsBelongToYear(Pageable page, final Integer monthId, final String ownerId) {
-        List<MonthNoCategoriesReadModel> months = monthRepository.findAllByYearIdAndOwnerId(page, monthId, ownerId)
-                .stream()
-                .map(MonthNoCategoriesReadModel::new)
-                .collect(Collectors.toList());
+        try {
+            List<MonthNoCategoriesReadModel> months = monthRepository.findAllByYearIdAndOwnerId(page, monthId, ownerId)
+                    .stream()
+                    .map(MonthNoCategoriesReadModel::new)
+                    .collect(Collectors.toList());
 
-        return new PageImpl<>(months);
+            return new PageImpl<>(months);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with data");
+        } catch (NullPointerException e) {
+            throw new NullPointerException("no months found");
+        }
     }
 
     YearExpenses findById(final Integer id, final String ownerId) throws NotFoundException {
@@ -109,27 +150,46 @@ class YearExpensesService {
         return repository.existsByYearAndOwnerId(year, ownerId);
     }
 
-    boolean yearLevelValidationSuccess(final Integer id, final String ownerId) {
-        return repository.existsByIdAndOwnerId(id, ownerId);
+    boolean yearLevelValidationSuccess(final Integer id, final String ownerId) throws NotFoundException {
+        try {
+            return repository.existsByIdAndOwnerId(id, ownerId);
+        } catch (Exception e) {
+            throw new NotFoundException("given year does not exist!");
+        }
     }
 
     YearExpenses saveAndFlush(final YearExpenses updatedYear) {
-        return repository.saveAndFlush(updatedYear);
+        try {
+            return repository.saveAndFlush(updatedYear);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with data");
+        }
     }
 
     void deleteYear(final Integer id, final String ownerId) {
-        repository.deleteByIdAndOwnerId(id, ownerId);
+        try {
+            repository.deleteByIdAndOwnerId(id, ownerId);
+        } catch (DataAccessException e) {
+            logger.error(e.getMessage());
+            throw new RuntimeException("an error occurred while deleting selected year");
+        }
     }
 
-    // TODO -> zabezpieczenie w razie gdyby ktos podał cos innego niz cyfre
-    boolean checkIfGivenYearExistAndIfRepresentsNumber(final short year, final String ownerId) {
-        if (repository.existsByYearAndOwnerId(year, ownerId)) {
-            return true;
-        } else
-            return false;
+    boolean checkIfGivenYearExistAndIfRepresentsNumber(final YearExpenses Year, final String ownerId) {
+        try {
+            final short year = Year.getYear();
+            if(repository.existsByYearAndOwnerId(year, ownerId)) {
+                return true;
+            } else
+                return false;
+        } catch (DataAccessException e) {
+            logger.warn("an DataAccessException occurred while validating '" + Year.getYear() + "'");
+            throw new RuntimeException("given year value '" + Year.getYear() + "' does not represent a number");
+        }
+
     }
 
-    boolean checkIfMonthExistInGivenYear(final String monthName, final YearExpenses year, final String ownerId) {
+    boolean checkIfMonthExistInGivenYear(final String monthName, final YearExpenses year, final String ownerId) throws NotFoundException {
         return monthService.checkIfGivenMonthNameExist(monthName, year, ownerId);
     }
 
@@ -156,27 +216,40 @@ class YearExpensesService {
             years.forEach(Year -> {
                 final short year = Year.getYear();
                 List<MonthNoCategoriesReadModel> months = Year.getMonths();
-                months.forEach(Month -> Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("month allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
-                Year.add(linkTo(methodOn(YearExpensesController.class).readOneYearContent(Year.getId())).withRel("year_allowed_queries: POST month,GET,PUT,PATCH,?{DELETE}"));
+                months.forEach(Month -> {
+                    try {
+                        Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("month allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+                    } catch (NotFoundException ignored) {
+                    }
+                });
+                try {
+                    Year.add(linkTo(methodOn(YearExpensesController.class).readOneYearContent(Year.getId())).withRel("year_allowed_queries: POST month,GET,PUT,PATCH,?{DELETE}"));
+                } catch (NotFoundException ignored) {
+                }
             });
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedYears = new PageImpl<>(years);
-                return new CollectionModel(pagedYears, href1, href2, href3, href4);
+                return CollectionModel.of(pagedYears, href1, href2, href3, href4);
             } else {
-                return new CollectionModel(years, href1, href2, href3, href4);
+                return CollectionModel.of(years, href1, href2, href3, href4);
             }
         }
         else {
             List<YearNoMonthsReadModel> years = (List<YearNoMonthsReadModel>) unknownYears;
 
-            years.forEach(Year -> Year.add(linkTo(methodOn(YearExpensesController.class).readOneYearContent(Year.getId())).withRel("year_allowed_queries: POST month,GET,PUT,PATCH,?{DELETE}")));
+            years.forEach(Year -> {
+                try {
+                    Year.add(linkTo(methodOn(YearExpensesController.class).readOneYearContent(Year.getId())).withRel("year_allowed_queries: POST month,GET,PUT,PATCH,?{DELETE}"));
+                } catch (NotFoundException ignored) {
+                }
+            });
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedYears = new PageImpl<>(years);
-                return new CollectionModel(pagedYears, href1, href2, href3, href4);
+                return CollectionModel.of(pagedYears, href1, href2, href3, href4);
             } else {
-                return new CollectionModel(years, href1, href2, href3, href4);
+                return CollectionModel.of(years, href1, href2, href3, href4);
             }
         }
     }
@@ -184,9 +257,14 @@ class YearExpensesService {
     CollectionModel<?> prepareReadOneYearContentHateoas(final List<MonthNoCategoriesReadModel> months,
                                                         final short year,
                                                         final String ownerId,
-                                                        final boolean PAGEABLE_PARAM_CHOSEN) {
+                                                        final boolean PAGEABLE_PARAM_CHOSEN) throws NotFoundException {
 
-        months.forEach(Month -> Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}")));
+        months.forEach(Month -> {
+            try {
+                Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}"));
+            } catch (NotFoundException ignored) {
+            }
+        });
         final Integer yearId = repository.findByYearAndOwnerId(year, ownerId).get().getId();
         final Link href1 = linkTo(methodOn(YearExpensesController.class).readOneYearContent(yearId)).withSelfRel();
         final Link href2 = linkTo(methodOn(YearExpensesController.class).readOneYearContent(yearId)).withRel("?{sort,size,page}");
@@ -196,39 +274,10 @@ class YearExpensesService {
 
         if(PAGEABLE_PARAM_CHOSEN) {
             var pagedMonths = new PageImpl<>(months);
-            return new CollectionModel(pagedMonths, href1, href2, href3, href4, href5);
+            return CollectionModel.of(pagedMonths, href1, href2, href3, href4, href5);
 
         } else {
-            return new CollectionModel(months, href1, href2, href3, href4, href5);
+            return CollectionModel.of(months, href1, href2, href3, href4, href5);
         }
     }
-
-//    /**
-//     * @isInteger checks if given 'year' param represents a number
-//     * @param givenYear String param 'year' given in URL
-//     * @return true or false
-//     */
-//    public static boolean isInteger(String givenYear) {
-//        if (givenYear == null) {
-//            return false;
-//        }
-//        int length = givenYear.length();
-//        if (length == 0) {
-//            return false;
-//        }
-//        int i = 0;
-//        if (givenYear.charAt(0) == '-') {
-//            if (length == 1) {
-//                return false;
-//            }
-//            i = 1;
-//        }
-//        for (; i < length; i++) {
-//            char c = givenYear.charAt(i);
-//            if (c < '0' || c > '9') {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
 }

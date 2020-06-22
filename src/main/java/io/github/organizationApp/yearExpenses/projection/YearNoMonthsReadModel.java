@@ -1,6 +1,7 @@
-package io.github.organizationApp.yearExpenses;
+package io.github.organizationApp.yearExpenses.projection;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.organizationApp.yearExpenses.YearExpenses;
 
 @JsonIgnoreProperties({"id", "months"})
 public class YearNoMonthsReadModel extends YearFullReadModel {

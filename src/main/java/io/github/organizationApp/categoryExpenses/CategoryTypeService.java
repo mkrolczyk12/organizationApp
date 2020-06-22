@@ -1,15 +1,21 @@
 package io.github.organizationApp.categoryExpenses;
 
+import io.github.organizationApp.categoryExpenses.projection.CategoryFullReadModel;
+import io.github.organizationApp.categoryExpenses.projection.CategoryFullWriteModel;
+import io.github.organizationApp.categoryExpenses.projection.CategoryNoProcessesReadModel;
+import io.github.organizationApp.categoryExpenses.projection.CategoryProcessReadModel;
 import io.github.organizationApp.expensesProcess.Process;
 import io.github.organizationApp.expensesProcess.ProcessController;
 import io.github.organizationApp.expensesProcess.ProcessRepository;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 import io.github.organizationApp.monthExpenses.MonthExpensesController;
 import io.github.organizationApp.monthExpenses.MonthExpensesRepository;
+import io.github.organizationApp.yearExpenses.YearExpenses;
 import io.github.organizationApp.yearExpenses.YearExpensesRepository;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -42,17 +48,16 @@ public class CategoryTypeService {
         this.processesRepository = processesRepository;
     }
 
-    CategoryType save(final CategoryType toCategory) {
-        return repository.save(toCategory);
-    }
+    CategoryType save(final CategoryType toCategory) {return repository.save(toCategory);}
 
     Process addProcess(final Process toProcess) {
         return processesRepository.save(toProcess);
     }
 
     void setMonthAndOwnerToNewCategory(final short year, final String month, final CategoryType toCategory, String ownerId) throws NotFoundException {
-        final Integer yearId = yearRepository.findByYearAndOwnerId(year, ownerId).get().getId();
-        MonthExpenses Month = monthRepository.findByMonthAndYearId(month, yearId)
+        final YearExpenses Year = yearRepository.findByYearAndOwnerId(year, ownerId)
+                .orElseThrow(() -> new NotFoundException("no year founded"));
+        MonthExpenses Month = monthRepository.findByMonthAndYearId(month, Year.getId())
                 .orElseThrow(() -> new NotFoundException("no month founded"));
         toCategory.setOwnerId(ownerId);
         toCategory.setMonthExpenses(Month);
@@ -66,9 +71,14 @@ public class CategoryTypeService {
     }
 
     CategoryFullReadModel createCategoryWithProcesses(final MonthExpenses month, final String userId, final CategoryFullWriteModel source) {
-        CategoryType result = repository.save(source.toCategoryType(month, userId));
+        try {
+            CategoryType result = repository.save(source.toCategoryType(month, userId));
 
-        return new CategoryFullReadModel(result);
+            return new CategoryFullReadModel(result);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with given data");
+        }
+
     }
 
     List<?> findAllByMonthExpensesId(final short year, final String month, final String ownerId, boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
@@ -156,17 +166,22 @@ public class CategoryTypeService {
                         } else
                             return false;
                     })
-                    .orElseThrow( () -> new NotFoundException("no year founded"));
-        } catch (NotFoundException e) {
+                    .orElseThrow( () -> new NotFoundException("category validation failed, no relation between given year and month"));
+        } catch (NotFoundException | NullPointerException | NoSuchElementException e) {
             return false;
         }
     }
 
-    public boolean checkIfGivenCategoryExist(final String categoryType, final MonthExpenses month, final String userId) {
-        if(repository.existsByTypeAndMonthExpensesAndOwnerId(categoryType, month, userId)) {
-            return true;
-        } else
-            return false;
+    public boolean checkIfGivenCategoryExist(final String categoryType, final MonthExpenses month, final String userId) throws NotFoundException {
+        try {
+            if(repository.existsByTypeAndMonthExpensesAndOwnerId(categoryType, month, userId)) {
+                return true;
+            } else
+                return false;
+        } catch (Exception e) {
+            throw new NotFoundException("given category does not exist!");
+        }
+
     }
 
     /**
@@ -183,7 +198,7 @@ public class CategoryTypeService {
                                                             final String month,
                                                             final String ownerId,
                                                             final boolean PAGEABLE_PARAM_CHOSEN,
-                                                            final boolean PROCESSES_FLAG_CHOSEN) {
+                                                            final boolean PROCESSES_FLAG_CHOSEN) throws NotFoundException {
 
         final Integer yearId = yearRepository.findByYearAndOwnerId(year, ownerId).get().getId();
         final Integer monthId = monthRepository.findByMonthAndYearId(month, yearId).get().getId();
@@ -200,27 +215,39 @@ public class CategoryTypeService {
             categories.forEach(Category -> {
                 List<CategoryProcessReadModel> processes = Category.getProcesses();
                 final String category = Category.getType();
-                processes.forEach(process -> process.add(linkTo(methodOn(ProcessController.class).readProcess(process.getId(), year, month, category)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}")));
-                Category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(Category.getId(), year, month)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+                processes.forEach(process -> {
+                    try {
+                        process.add(linkTo(methodOn(ProcessController.class).readProcess(process.getId(), year, month, category)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}"));
+                    } catch (NotFoundException ignored) {
+                    }
+                });
+                try {
+                    Category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(Category.getId(), year, month)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+                } catch (NotFoundException ignored) {
+                }
             });
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedCategories = new PageImpl<>(categories);
-                return new CollectionModel(pagedCategories, href1, href2, href3, href4, href5);
+                return CollectionModel.of(pagedCategories, href1, href2, href3, href4, href5);
             } else {
-                return new CollectionModel(categories, href1, href2, href3, href4, href5);
+                return CollectionModel.of(categories, href1, href2, href3, href4, href5);
             }
         }
         else {
             List<CategoryNoProcessesReadModel> categories = (List<CategoryNoProcessesReadModel>) unknownCategories;
 
-            categories.forEach(category -> category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, month)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
+            categories.forEach(category -> {
+                try {
+                    category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, month)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+                } catch (NotFoundException ignored) {}
+            });
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedCategories = new PageImpl<>(categories);
-                return new CollectionModel(pagedCategories, href1, href2, href3, href4, href5);
+                return CollectionModel.of(pagedCategories, href1, href2, href3, href4, href5);
             } else {
-                return new CollectionModel(categories, href1, href2, href3, href4, href5);
+                return CollectionModel.of(categories, href1, href2, href3, href4, href5);
             }
         }
     }
@@ -238,9 +265,13 @@ public class CategoryTypeService {
                                                                 final short year,
                                                                 final String month,
                                                                 final String category,
-                                                                final boolean PAGEABLE_PARAM_CHOSEN) {
+                                                                final boolean PAGEABLE_PARAM_CHOSEN) throws NotFoundException {
 
-        processes.forEach(process -> process.add(linkTo(methodOn(ProcessController.class).readProcess(process.getId(), year, month, category)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}")));
+        processes.forEach(process -> {
+            try {
+                process.add(linkTo(methodOn(ProcessController.class).readProcess(process.getId(), year, month, category)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}"));
+            } catch (NotFoundException ignored) {}
+        });
         final Integer categoryId = processes.get(0).getCategory().getId();
         final Link href1 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(categoryId, year, month)).withSelfRel();
         final Link href2 = linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(categoryId, year, month)).withRel("POST_process");
@@ -250,10 +281,10 @@ public class CategoryTypeService {
 
         if(PAGEABLE_PARAM_CHOSEN) {
             var pagedProcesses = new PageImpl<>(processes);
-            return new CollectionModel(pagedProcesses, href1, href2, href3, href4, href5);
+            return CollectionModel.of(pagedProcesses, href1, href2, href3, href4, href5);
 
         } else {
-            return new CollectionModel(processes, href1, href2, href3, href4, href5);
+            return CollectionModel.of(processes, href1, href2, href3, href4, href5);
         }
     }
 }

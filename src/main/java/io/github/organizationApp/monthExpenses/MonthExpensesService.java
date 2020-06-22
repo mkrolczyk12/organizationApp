@@ -1,12 +1,17 @@
 package io.github.organizationApp.monthExpenses;
 
 import io.github.organizationApp.categoryExpenses.*;
+import io.github.organizationApp.categoryExpenses.projection.CategoryNoProcessesReadModel;
+import io.github.organizationApp.monthExpenses.projection.MonthFullReadModel;
+import io.github.organizationApp.monthExpenses.projection.MonthFullWriteModel;
+import io.github.organizationApp.monthExpenses.projection.MonthNoCategoriesReadModel;
 import io.github.organizationApp.yearExpenses.YearExpenses;
 import io.github.organizationApp.yearExpenses.YearExpensesController;
 import io.github.organizationApp.yearExpenses.YearExpensesRepository;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +45,9 @@ public class MonthExpensesService {
     }
 
 
-    MonthExpenses save(final MonthExpenses month) {return repository.save(month);}
+    MonthExpenses save(final MonthExpenses month) {
+        checkIfGivenMonthParameterValueRepresentsMonth(month.getMonth());
+        return repository.save(month);}
 
     CategoryType addCategory(final CategoryType toCategoryType) {
         return categoryRepository.save(toCategoryType);
@@ -64,6 +71,7 @@ public class MonthExpensesService {
                                                  final MonthFullWriteModel source,
                                                  final String ownerId) {
 
+        checkIfGivenMonthParameterValueRepresentsMonth(source.getMonth());
         MonthExpenses result = repository.save(source.toMonth(belongingYear, ownerId));
 
         return new MonthFullReadModel(result);
@@ -90,17 +98,22 @@ public class MonthExpensesService {
         Integer yearId  = yearRepository.findByYearAndOwnerId(year, ownerId)
                 .map(result -> result.getId())
                 .orElseThrow(() -> new NotFoundException("no year with given parameter"));
-
-        if(CATEGORIES_FLAG_CHOSEN) {
-            return repository.findAllByYearIdAndOwnerId(yearId, ownerId)
-                    .stream()
-                    .map(MonthFullReadModel::new)
-                    .collect(Collectors.toList());
-        } else {
-            return repository.findAllByYearIdAndOwnerId(yearId, ownerId)
-                    .stream()
-                    .map(MonthNoCategoriesReadModel::new)
-                    .collect(Collectors.toList());
+        try {
+            if(CATEGORIES_FLAG_CHOSEN) {
+                return repository.findAllByYearIdAndOwnerId(yearId, ownerId)
+                        .stream()
+                        .map(MonthFullReadModel::new)
+                        .collect(Collectors.toList());
+            } else {
+                return repository.findAllByYearIdAndOwnerId(yearId, ownerId)
+                        .stream()
+                        .map(MonthNoCategoriesReadModel::new)
+                        .collect(Collectors.toList());
+            }
+        } catch (NullPointerException | NoSuchElementException e) {
+            throw new NotFoundException("no months found");
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with data");
         }
     }
 
@@ -110,20 +123,26 @@ public class MonthExpensesService {
                 .map(result -> result.getId())
                 .orElseThrow(() -> new NotFoundException("no year with given parameter"));
 
-        Page<MonthExpenses> pagedMonths = repository.findAllByYearIdAndOwnerId(page, yearId, ownerId);
-        List<?> items;
-        if(CATEGORIES_FLAG_CHOSEN) {
-            items = pagedMonths.toList()
-                    .stream()
-                    .map(MonthFullReadModel::new)
-                    .collect(Collectors.toList());
-        } else {
-            items = pagedMonths.toList()
-                    .stream()
-                    .map(MonthNoCategoriesReadModel::new)
-                    .collect(Collectors.toList());
+        try {
+            Page<MonthExpenses> pagedMonths = repository.findAllByYearIdAndOwnerId(page, yearId, ownerId);
+            List<?> items;
+            if(CATEGORIES_FLAG_CHOSEN) {
+                items = pagedMonths.toList()
+                        .stream()
+                        .map(MonthFullReadModel::new)
+                        .collect(Collectors.toList());
+            } else {
+                items = pagedMonths.toList()
+                        .stream()
+                        .map(MonthNoCategoriesReadModel::new)
+                        .collect(Collectors.toList());
+            }
+            return new PageImpl(items);
+        } catch (NullPointerException | NoSuchElementException e) {
+            throw new NotFoundException("no months found");
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with data");
         }
-        return new PageImpl(items);
     }
 
     MonthExpenses findById(final Integer id, final String ownerId) throws NotFoundException {
@@ -142,26 +161,48 @@ public class MonthExpensesService {
     }
 
     MonthExpenses saveAndFlush(final MonthExpenses updatedMonth) {
-        return repository.saveAndFlush(updatedMonth);
+        try {
+            return repository.saveAndFlush(updatedMonth);
+        } catch (DataAccessException e) {
+            throw new RuntimeException("an error occurred while working with data");
+        }
     }
 
     void deleteMonth(final Integer id, final String ownerId) {
         repository.deleteByIdAndOwnerId(id, ownerId);
     }
 
-    boolean monthLevelValidationSuccess(final short year, final String ownerId) {
+    boolean monthLevelValidationSuccess(final short year, final String ownerId) throws NotFoundException {
+        try {
             return yearRepository.existsByYearAndOwnerId(year, ownerId);
+        } catch (Exception e) {
+            throw new NotFoundException("month level validation failed, no year founded");
+        }
     }
 
-    public boolean checkIfGivenMonthNameExist(final String monthName, final YearExpenses year, final String ownerId) {
-        if(repository.existsByMonthAndYearAndOwnerId(monthName, year, ownerId)) {
-            return true;
-        } else
-            return false;
+    public boolean checkIfGivenMonthNameExist(final String monthName, final YearExpenses year, final String ownerId) throws NotFoundException {
+        try {
+            if(repository.existsByMonthAndYearAndOwnerId(monthName, year, ownerId)) {
+                return true;
+            } else
+                return false;
+        } catch (Exception e) {
+            throw new NotFoundException("given month does not exist!");
+        }
+
     }
 
-    boolean checkIfCategoryExistInGivenMonth(final String categoryName, final MonthExpenses month, final String ownerId) {
+    boolean checkIfCategoryExistInGivenMonth(final String categoryName, final MonthExpenses month, final String ownerId) throws NotFoundException {
         return categoryService.checkIfGivenCategoryExist(categoryName, month, ownerId);
+    }
+
+    public boolean checkIfGivenMonthParameterValueRepresentsMonth(String month) {
+        String workString = month.toUpperCase();
+        for(Month eachMonth : Month.values()) {
+            if(eachMonth.name().equals(workString)) {
+                return true;
+            }
+        } throw new IllegalArgumentException("the provided value '" + month + "' does not represent the month");
     }
 
 
@@ -178,7 +219,7 @@ public class MonthExpensesService {
                                                 final short year,
                                                 final String ownerId,
                                                 final boolean PAGEABLE_PARAM_CHOSEN,
-                                                final boolean CATEGORIES_FLAG_CHOSEN) {
+                                                final boolean CATEGORIES_FLAG_CHOSEN) throws NotFoundException {
 
         final Integer yearId = yearRepository.findByYearAndOwnerId(year, ownerId).get().getId();
         final Link href1 = linkTo(methodOn(MonthExpensesController.class).readEmptyMonths(year)).withSelfRel();
@@ -193,27 +234,40 @@ public class MonthExpensesService {
             months.forEach(Month -> {
                 final String monthType = Month.getMonth();
                 List<CategoryNoProcessesReadModel> categories = Month.getCategories();
-                categories.forEach(category -> category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, monthType)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
-                Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("month allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+                categories.forEach(category -> {
+                    try {
+                        category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, monthType)).withRel("category allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+                    } catch (NotFoundException ignored) {
+                    }
+                });
+                try {
+                    Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("month allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+                } catch (NotFoundException ignored) {
+                }
             });
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedMonths = new PageImpl<>(months);
-                return new CollectionModel(pagedMonths, href1, href2, href3, href4, href5);
+                return CollectionModel.of(pagedMonths, href1, href2, href3, href4, href5);
             } else {
-                return new CollectionModel(months, href1, href2, href3, href4, href5);
+                return CollectionModel.of(months, href1, href2, href3, href4, href5);
             }
         }
         else {
             List<MonthNoCategoriesReadModel> months = (List<MonthNoCategoriesReadModel>) unknownMonths;
 
-            months.forEach(Month -> Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("month allowed_queries: POST,GET,PUT,PATCH,?{DELETE}")));
+            months.forEach(Month -> {
+                try {
+                    Month.add(linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(Month.getId(), year)).withRel("month allowed_queries: POST,GET,PUT,PATCH,?{DELETE}"));
+                } catch (NotFoundException ignored) {
+                }
+            });
 
             if(PAGEABLE_PARAM_CHOSEN) {
                 var pagedCategories = new PageImpl<>(months);
-                return new CollectionModel(pagedCategories, href1, href2, href3, href4, href5);
+                return CollectionModel.of(pagedCategories, href1, href2, href3, href4, href5);
             } else {
-                return new CollectionModel(months, href1, href2, href3, href4, href5);
+                return CollectionModel.of(months, href1, href2, href3, href4, href5);
             }
         }
     }
@@ -230,9 +284,14 @@ public class MonthExpensesService {
                                                          final short year,
                                                          final String month,
                                                          final String ownerId,
-                                                         final boolean PAGEABLE_PARAM_CHOSEN) {
+                                                         final boolean PAGEABLE_PARAM_CHOSEN) throws NotFoundException {
 
-        categories.forEach(category -> category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, month)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}")));
+        categories.forEach(category -> {
+            try {
+                category.add(linkTo(methodOn(CategoryTypeController.class).readOneCategoryTypeContent(category.getId(), year, month)).withRel("allowed_queries: GET,PUT,PATCH,?{DELETE}"));
+            } catch (NotFoundException ignored) {
+            }
+        });
         final Integer yearId = yearRepository.findByYearAndOwnerId(year, ownerId).get().getId();
         final Integer monthId = repository.findByMonthAndYearId(month, yearId).get().getId();
         final Link href1 = linkTo(methodOn(MonthExpensesController.class).readOneMonthContent(monthId, year)).withSelfRel();
@@ -243,10 +302,10 @@ public class MonthExpensesService {
 
         if(PAGEABLE_PARAM_CHOSEN) {
             var pagedCategories = new PageImpl<>(categories);
-            return new CollectionModel(pagedCategories, href1, href2, href3, href4, href5);
+            return CollectionModel.of(pagedCategories, href1, href2, href3, href4, href5);
 
         } else {
-            return new CollectionModel(categories, href1, href2, href3, href4, href5);
+            return CollectionModel.of(categories, href1, href2, href3, href4, href5);
         }
     }
 }

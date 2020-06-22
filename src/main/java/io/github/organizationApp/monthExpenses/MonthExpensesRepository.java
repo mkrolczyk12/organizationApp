@@ -20,4 +20,5 @@ public interface MonthExpensesRepository {
     boolean existsByMonthAndYearAndOwnerId(String month, YearExpenses year, final String ownerId);
 
     void deleteByIdAndOwnerId(Integer id, final String ownerId);
+
 }

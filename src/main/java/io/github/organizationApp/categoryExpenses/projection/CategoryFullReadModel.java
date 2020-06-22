@@ -1,6 +1,7 @@
-package io.github.organizationApp.categoryExpenses;
+package io.github.organizationApp.categoryExpenses.projection;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.organizationApp.categoryExpenses.CategoryType;
 import org.springframework.hateoas.RepresentationModel;
 
 import java.util.List;

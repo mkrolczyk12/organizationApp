@@ -16,7 +16,8 @@ public interface ProcessRepository {
     Page<Process> findAllByOwnerId(Pageable page, String ownerId);
     Optional<List<Process>> findAllByCategory_IdAndOwnerId(Integer id, final String ownerId);
     Optional<Page<Process>> findAllByCategory_IdAndOwnerId(Pageable page, Integer id, final String ownerId);
-    Optional<Process> findById(Long id);
+    Optional<Process> findByIdAndOwnerId(Long id, final String ownerId);
+    boolean existsByIdAndOwnerId(final Long id, final String ownerId);
 
     Process saveAndFlush(Process process);
 

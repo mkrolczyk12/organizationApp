@@ -1,7 +1,8 @@
-package io.github.organizationApp.monthExpenses;
+package io.github.organizationApp.monthExpenses.projection;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.github.organizationApp.categoryExpenses.CategoryNoProcessesReadModel;
+import io.github.organizationApp.categoryExpenses.projection.CategoryNoProcessesReadModel;
+import io.github.organizationApp.monthExpenses.MonthExpenses;
 import org.springframework.hateoas.RepresentationModel;
 
 import java.util.List;

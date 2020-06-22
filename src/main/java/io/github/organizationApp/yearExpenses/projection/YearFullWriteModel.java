@@ -1,6 +1,7 @@
-package io.github.organizationApp.yearExpenses;
+package io.github.organizationApp.yearExpenses.projection;
 
-import io.github.organizationApp.monthExpenses.MonthNoCategoriesWriteModel;
+import io.github.organizationApp.monthExpenses.projection.MonthNoCategoriesWriteModel;
+import io.github.organizationApp.yearExpenses.YearExpenses;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;

@@ -1,7 +1,10 @@
 package io.github.organizationApp.globalControllerAdvice;
 
+import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,93 +15,210 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.*;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import javax.validation.ConstraintViolationException;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.NoSuchElementException;
 
+/**
+ * General exceptions handler
+ */
 @RestControllerAdvice(annotations = GeneralExceptionsProcessing.class)
-public class GeneralExceptionsControllerAdvice {
+@Order(2)
+public final class GeneralExceptionsControllerAdvice {
     private static final Logger logger = LoggerFactory.getLogger(GeneralExceptionsControllerAdvice.class);
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
-        logger.warn("captured RuntimeException: " + e.getMessage());
-        return ResponseEntity.notFound().build();
+    public final ResponseEntity<Object> handleRuntimeException(RuntimeException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured RuntimeException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException e) {
-        logger.warn("captured IllegalArgumentException: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
+    public final ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured IllegalArgumentException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<?> handleNullPointer(NullPointerException e) {
-        logger.warn("captured handleNullPointerException: " + e.getMessage());
-        e.printStackTrace();
-        return ResponseEntity.notFound().build();
+    public final ResponseEntity<Object> handleNullPointerException(NullPointerException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured NullPointerException: " + message);
+        exception.printStackTrace();
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(NumberFormatException.class)
+    public final ResponseEntity<Object> handleNumberFormatException(NumberFormatException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured NumberFormatException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<?> handleIllegalState(IllegalStateException e) {
-        logger.warn("captured handleIllegalStateException: " + e.getMessage());
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleIllegalStateException(IllegalStateException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured IllegalStateException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<?> handleConstraintViolation(ConstraintViolationException e) {
-        logger.warn("captured ConstraintViolationException: " + e.getMessage());
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured ConstraintViolationException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<?> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
-        logger.warn("captured HttpMessageNotReadableException: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error Message");
+    public final ResponseEntity<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception, WebRequest request) {
+
+        logger.warn("captured HttpMessageNotReadableException: " + exception.getMessage());
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), "Wrong message", request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<?> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException e) {
-        logger.warn("captured HHttpMediaTypeNotSupportedException: " + e.getMessage());
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured HttpMediaTypeNotSupportedException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
     }
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<?> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException e) {
-        logger.warn("captured HttpRequestMethodNotSupportedException: " + e.getMessage());
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured HttpRequestMethodNotSupportedException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
-        logger.warn("captured MethodArgumentNotValidException: " + e.getMessage());
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured MethodArgumentNotValidException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(UnsatisfiedServletRequestParameterException.class)
-    public ResponseEntity<?> handleUnsatisfiedServletRequestParameter(final UnsatisfiedServletRequestParameterException e) {
-        logger.warn("captured UnsatisfiedServletRequestParameterException: " + e.getMessage());
-        return ResponseEntity.notFound().build();
+    public final ResponseEntity<Object> handleUnsatisfiedServletRequestParameterException(UnsatisfiedServletRequestParameterException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured UnsatisfiedServletRequestParameterException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<?> handleMissingServletRequestParameter(final MissingServletRequestParameterException e) {
-        logger.warn("captured MissingServletRequestParameterException: required " + e.getParameterType() + " parameter " + "'" + e.getParameterName() + "'" + " is not present");
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleMissingServletRequestParameterException(MissingServletRequestParameterException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured MissingServletRequestParameterException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(BindException.class)
-    public ResponseEntity<?> handleBind(final BindException e) {
-        logger.warn("captured BindException: body validation error: " + e.getFieldError());
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleBindException(BindException exception, WebRequest request) {
+
+        final String message = "body validation error: " + exception.getFieldError();
+        logger.warn("captured BindException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(MissingPathVariableException.class)
-    public ResponseEntity<?> handleMissingPathVariable(final MissingPathVariableException e) {
-        logger.warn("captured MissingPathVariableException: Missing URI template variable '"+ e.getVariableName() + "' method parameter");
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleMissingPathVariableException(MissingPathVariableException exception, WebRequest request) {
+
+        final String message = "missing URI template variable '"+ exception.getVariableName() + "' method parameter";
+        logger.warn("captured MissingPathVariableException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(ClassCastException.class)
-    public ResponseEntity<?> handleClassCast(final ClassCastException e) {
-        logger.warn("captured ClassCastException: " + e.getMessage());
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleClassCastException(ClassCastException exception, WebRequest request) {
+
+        final String message = "The wrong data type was specified";
+        logger.warn("captured ClassCastException: " + exception.getMessage());
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(PropertyReferenceException.class)
-    public ResponseEntity<?> handlePropertyReference(final PropertyReferenceException e) {
-        logger.warn("captured PropertyReferenceException: invalid " + e.getPropertyName() + " property");
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException exception, WebRequest request) {
+
+        final String message = "invalid URI '" + exception.getPropertyName() + "' property";
+        logger.warn("captured PropertyReferenceException: " + exception.getMessage());
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<?> handleNoSuchElement(final NoSuchElementException e) {
-        logger.warn("captured NoSuchElementException: " + e.getMessage());
-        return ResponseEntity.badRequest().build();
+    public final ResponseEntity<Object> handleNoSuchElementException(NoSuchElementException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured NoSuchElementException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(NotFoundException.class)
+    public final ResponseEntity<Object> handleNotFoundException(NotFoundException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured NoSuchElementException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(IOException.class)
+    public final ResponseEntity<Object> handleIOException(IOException exception, WebRequest request) {
+
+        final String message = "an error occurred while working with data";
+        logger.warn("captured IOException: " + exception.getMessage());
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
