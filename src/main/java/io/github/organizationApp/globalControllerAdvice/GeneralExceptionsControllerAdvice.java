@@ -27,7 +27,7 @@ import java.util.NoSuchElementException;
  * General exceptions handler
  */
 @RestControllerAdvice(annotations = GeneralExceptionsProcessing.class)
-@Order(2)
+@Order(3)
 public final class GeneralExceptionsControllerAdvice {
     private static final Logger logger = LoggerFactory.getLogger(GeneralExceptionsControllerAdvice.class);
 
@@ -56,7 +56,6 @@ public final class GeneralExceptionsControllerAdvice {
 
         final String message = exception.getMessage();
         logger.warn("captured NullPointerException: " + message);
-        exception.printStackTrace();
         ExceptionResponse response =
                 new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
 
@@ -220,5 +219,15 @@ public final class GeneralExceptionsControllerAdvice {
                 new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
 
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(IllegalAccessException.class)
+    public final ResponseEntity<Object> handleIllegalAccessException(IllegalAccessException exception, WebRequest request) {
+
+        final String message = "The client has not been recognized";
+        logger.warn("captured IllegalAccessException: " + exception.getMessage());
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 }

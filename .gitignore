@@ -31,3 +31,4 @@ build/
 .vscode/
 organizationApp-db.mv.db
 organizationApp-db.trace.db
+keycloak-10.0.1

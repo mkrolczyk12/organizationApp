@@ -7,6 +7,7 @@ import io.github.organizationApp.globalControllerAdvice.ExceptionResponse;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
 import io.github.organizationApp.monthExpenses.projection.MonthFullReadModel;
 import io.github.organizationApp.monthExpenses.projection.MonthFullWriteModel;
+import io.github.organizationApp.security.SecurityExceptionsProcessing;
 import io.github.organizationApp.security.User;
 import io.github.organizationApp.yearExpenses.YearExpenses;
 import javassist.NotFoundException;
@@ -32,7 +33,8 @@ import java.util.List;
 
 @Controller
 @GeneralExceptionsProcessing
-@ExceptionsProcessing
+@MonthExceptionsProcessing
+@SecurityExceptionsProcessing
 @RequestMapping("/moneyapp/months")
 public class MonthExpensesController {
     private static final Logger logger = LoggerFactory.getLogger(MonthExpensesController.class);
@@ -49,7 +51,7 @@ public class MonthExpensesController {
      */
     @Transactional
     @ResponseBody
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<MonthExpenses> addEmptyMonth(@RequestParam(value = "year") final short YEAR_PARAM,
                                                 @RequestBody @Valid final MonthExpenses toMonth) throws NotFoundException {
 
@@ -79,7 +81,7 @@ public class MonthExpensesController {
     }
     @Transactional
     @ResponseBody
-    @PostMapping(params = {"categories"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(params = {"categories"}, consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<MonthFullReadModel> addMonthWithCategories(@RequestParam(value = "year") final short YEAR_PARAM,
                                                               @RequestBody @Valid final MonthFullWriteModel toMonth) throws NotFoundException {
 
@@ -110,7 +112,7 @@ public class MonthExpensesController {
     }
     @Transactional
     @ResponseBody
-    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CategoryType> addCategoryToChosenMonth(@PathVariable final Integer id,
                                                            @RequestParam(value = "year") final short YEAR_PARAM,
                                                            @RequestBody @Valid final CategoryType toCategory) throws NotFoundException {
@@ -141,7 +143,7 @@ public class MonthExpensesController {
             }
     }
     @ResponseBody
-    @GetMapping(params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"!sort", "!size", "!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyMonths(@RequestParam(value = "year") final short YEAR_PARAM) throws NotFoundException {
 
         final String USER_ID = User.getUserId();
@@ -163,7 +165,7 @@ public class MonthExpensesController {
         return ResponseEntity.ok(monthsCollection);
     }
     @ResponseBody
-    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyMonths(final Pageable page,
                                       @RequestParam(value = "year") final short YEAR_PARAM) throws NotFoundException {
 
@@ -186,7 +188,7 @@ public class MonthExpensesController {
         return ResponseEntity.ok(monthsCollection);
     }
     @ResponseBody
-    @GetMapping(params = {"categories", "!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"categories", "!sort", "!size", "!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readMonthsWithCategories(@RequestParam(value = "year") final short YEAR_PARAM) throws NotFoundException {
 
         final String USER_ID = User.getUserId();
@@ -208,7 +210,7 @@ public class MonthExpensesController {
         return ResponseEntity.ok(monthsCollection);
     }
     @ResponseBody
-    @GetMapping(params = {"categories"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"categories"}, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readMonthsWithCategories(final Pageable page,
                                                @RequestParam(value = "year") final short YEAR_PARAM) throws NotFoundException {
 
@@ -231,7 +233,7 @@ public class MonthExpensesController {
         return ResponseEntity.ok(monthsCollection);
     }
     @ResponseBody
-    @GetMapping(value = "/{id}", params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", params = {"!sort", "!size", "!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneMonthContent(@PathVariable final Integer id,
                                                  @RequestParam(value = "year") final short YEAR_PARAM) throws NotFoundException {
 
@@ -254,7 +256,7 @@ public class MonthExpensesController {
         return ResponseEntity.ok(monthCollection);
     }
     @ResponseBody
-    @GetMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneMonthContent(final Pageable page,
                                           @PathVariable final Integer id,
                                           @RequestParam(value = "year") final short YEAR_PARAM) throws NotFoundException {
@@ -279,7 +281,7 @@ public class MonthExpensesController {
     }
     @Transactional
     @ResponseBody
-    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> fullUpdateMonth(@PathVariable final Integer id,
                                            @RequestParam(value = "year") final short YEAR_PARAM,
                                            @RequestBody @Valid final MonthExpenses toUpdate) throws NotFoundException {
@@ -313,7 +315,7 @@ public class MonthExpensesController {
     }
     @Transactional
     @ResponseBody
-    @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> partUpdateMonth(@PathVariable final Integer id,
                                                   @RequestParam(value = "year") final short YEAR_PARAM,
                                                   @Valid final HttpServletRequest request) throws NotFoundException, IOException {
@@ -350,7 +352,7 @@ public class MonthExpensesController {
     }
     @Transactional
     @ResponseBody
-    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteMonth(@PathVariable final Integer id,
                                        @RequestParam(value = "year") final short YEAR_PARAM) throws NotFoundException {
 

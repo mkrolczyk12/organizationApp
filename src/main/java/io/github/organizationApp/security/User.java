@@ -21,7 +21,7 @@ public class User {
             return userId;
         } catch (NullPointerException e) {
             logger.error("userId not found! ");
-            throw new NullPointerException("an error occurred while validating client");
+            throw new NullPointerException("The client has not been recognized");
         }
     }
 }

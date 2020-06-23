@@ -3,9 +3,7 @@ package io.github.organizationApp.expensesProcess;
 import io.github.organizationApp.globalControllerAdvice.ExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,8 +18,8 @@ import java.util.NoSuchElementException;
 /**
  * For individual package exceptions
  */
-@RestControllerAdvice(annotations = ExceptionsProcessing.class)
-@Order(Ordered.HIGHEST_PRECEDENCE)
+@RestControllerAdvice(annotations = ProcessExceptionsProcessing.class)
+@Order(2)
 final class ProcessExceptionsHandlingControllerAdvice extends ResponseEntityExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(ProcessExceptionsHandlingControllerAdvice.class);
 

@@ -8,3 +8,9 @@ spring:
     password: 'admin'
   flyway:
     baseline-on-migrate: true
+#keycloak
+keycloak:
+  auth-server-url: ''
+  realm: 'OrganizationApp'
+  resource: 'app-spring-client'
+  public-client: true

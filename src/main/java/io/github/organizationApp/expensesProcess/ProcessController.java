@@ -1,19 +1,17 @@
 package io.github.organizationApp.expensesProcess;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.organizationApp.categoryExpenses.CategoryTypeController;
 import io.github.organizationApp.globalControllerAdvice.ExceptionResponse;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
+import io.github.organizationApp.security.SecurityExceptionsProcessing;
 import io.github.organizationApp.security.User;
 import io.micrometer.core.annotation.Timed;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,13 +26,13 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @Controller
 @GeneralExceptionsProcessing
-@ExceptionsProcessing
+@ProcessExceptionsProcessing
+@SecurityExceptionsProcessing
 @RequestMapping("/moneyapp/processes")
 public class ProcessController {
     private static final Logger logger = LoggerFactory.getLogger(ProcessController.class);
@@ -49,10 +47,9 @@ public class ProcessController {
     /**
      * JSON:API
      */
-    //consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @Timed(value = "controller.process.readProcesses", histogram = true, percentiles = {0.5,0.95,0.99})
     @ResponseBody
-    @GetMapping(params = {"all","!sort","!size","!page"})
+    @GetMapping(params = {"all","!sort","!size","!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readProcesses() throws NotFoundException, ExecutionException, InterruptedException {
 
         final String USER_ID = User.getUserId();
@@ -66,10 +63,9 @@ public class ProcessController {
 
         return ResponseEntity.ok(processCollection);
     }
-    //  consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @Timed(value = "controller.process.readProcesses(+Pageable param)", histogram = true, percentiles = {0.5,0.95,0.99})
     @ResponseBody
-    @GetMapping(params = "all")
+    @GetMapping(params = "all", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readProcesses(Pageable page) throws NotFoundException, ExecutionException, InterruptedException {
 
         final String USER_ID = User.getUserId();
@@ -82,9 +78,8 @@ public class ProcessController {
 
         return ResponseEntity.ok(processCollection);
     }
-    // consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE
     @ResponseBody
-    @GetMapping(path = "/{id}")
+    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<EntityModel<Process>> readProcess(@PathVariable final Long id,
                                                             @RequestParam(value = "year") final short YEAR_PARAM,
                                                             @RequestParam(value = "month") final String MONTH_PARAM,
@@ -107,7 +102,7 @@ public class ProcessController {
     }
     @Transactional
     @ResponseBody
-    @PutMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> fullUpdateProcess(@PathVariable final Long id,
                                              @RequestParam(value = "year") final short YEAR_PARAM,
                                              @RequestParam(value = "month") final String MONTH_PARAM,
@@ -132,7 +127,7 @@ public class ProcessController {
     }
     @Transactional
     @ResponseBody
-    @PatchMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> partUpdateProcess(@PathVariable final Long id,
                                                     @RequestParam(value = "year") final short YEAR_PARAM,
                                                     @RequestParam(value = "month") final String MONTH_PARAM,
@@ -157,7 +152,7 @@ public class ProcessController {
     }
     @Transactional
     @ResponseBody
-    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteProcess(@PathVariable final Long id,
                                          @RequestParam(value = "year") final short YEAR_PARAM,
                                          @RequestParam(value = "month") final String MONTH_PARAM,

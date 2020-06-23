@@ -12,7 +12,7 @@
 	<artifactId>organizationApp</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>organizationApp</name>
-	<description>plan and tracking application</description>
+	<description>Track your expenses, monitor your earnings, be aware of your finances!</description>
 
 	<properties>
 		<java.version>11</java.version>

@@ -5,6 +5,7 @@ import io.github.organizationApp.globalControllerAdvice.ExceptionResponse;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
 import io.github.organizationApp.monthExpenses.projection.MonthNoCategoriesReadModel;
+import io.github.organizationApp.security.SecurityExceptionsProcessing;
 import io.github.organizationApp.security.User;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
@@ -29,7 +30,8 @@ import java.util.List;
 
 @Controller
 @GeneralExceptionsProcessing
-@ExceptionsProcessing
+@YearExceptionsProcessing
+@SecurityExceptionsProcessing
 @RequestMapping("/moneyapp/years")
 public class YearExpensesController {
     private static final Logger logger = LoggerFactory.getLogger(YearExpensesController.class);
@@ -44,10 +46,9 @@ public class YearExpensesController {
     /**
      * JSON:API
      */
-    // consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @Transactional
     @ResponseBody
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> addEmptyYear(@RequestBody @Valid final YearExpenses toYear) {
 
         final String USER_ID = User.getUserId();
@@ -66,7 +67,7 @@ public class YearExpensesController {
     }
     @Transactional
     @ResponseBody
-    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity addMonthToChosenYear(@PathVariable final Integer id,
                                                @RequestBody @Valid final MonthExpenses toMonth) throws NotFoundException {
 
@@ -94,9 +95,8 @@ public class YearExpensesController {
                 return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
             }
     }
-    // consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @ResponseBody
-    @GetMapping(params = {"!sort","!size","!page"})
+    @GetMapping(params = {"!sort","!size","!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyYears() {
 
         final String USER_ID = User.getUserId();
@@ -109,9 +109,8 @@ public class YearExpensesController {
         logger.info("exposing all years!");
         return ResponseEntity.ok(yearsCollection);
     }
-    //consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE
     @ResponseBody
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyYears(final Pageable page) {
 
         final String USER_ID = User.getUserId();
@@ -125,7 +124,7 @@ public class YearExpensesController {
         return ResponseEntity.ok(yearsCollection);
     }
     @ResponseBody
-    @GetMapping(params = {"months", "!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"months", "!sort", "!size", "!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readYearsWithMonths() {
 
         final String USER_ID = User.getUserId();
@@ -139,7 +138,7 @@ public class YearExpensesController {
         return ResponseEntity.ok(yearsCollection);
     }
     @ResponseBody
-    @GetMapping(params = {"months"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"months"}, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readYearsWithMonths(final Pageable page) {
 
         final String USER_ID = User.getUserId();
@@ -153,7 +152,7 @@ public class YearExpensesController {
         return ResponseEntity.ok(yearsCollection);
     }
     @ResponseBody
-    @GetMapping(value = "/{id}", params = {"!sort", "!size", "!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", params = {"!sort", "!size", "!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneYearContent(@PathVariable final Integer id) throws NotFoundException {
 
         final String USER_ID = User.getUserId();
@@ -167,7 +166,7 @@ public class YearExpensesController {
         return ResponseEntity.ok(yearCollection);
     }
     @ResponseBody
-    @GetMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneYearContent(final Pageable page,
                                          @PathVariable final Integer id) throws NotFoundException {
 
@@ -183,7 +182,7 @@ public class YearExpensesController {
     }
     @Transactional
     @ResponseBody
-    @PutMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> fullUpdateYear(@PathVariable final Integer id,
                                           @RequestBody @Valid final YearExpenses toUpdate) throws NotFoundException {
 
@@ -213,7 +212,7 @@ public class YearExpensesController {
     }
     @Transactional
     @ResponseBody
-    @PatchMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> partUpdateYear(@PathVariable final Integer id,
                                                  @Valid final HttpServletRequest request) throws NotFoundException, IOException {
 
@@ -244,7 +243,7 @@ public class YearExpensesController {
     }
     @Transactional
     @ResponseBody
-    @DeleteMapping(value = "/{id}",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> deleteYear(@PathVariable final Integer id) throws NotFoundException {
 
         final String USER_ID = User.getUserId();

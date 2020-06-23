@@ -7,6 +7,7 @@ import io.github.organizationApp.expensesProcess.Process;
 import io.github.organizationApp.globalControllerAdvice.ExceptionResponse;
 import io.github.organizationApp.globalControllerAdvice.GeneralExceptionsProcessing;
 import io.github.organizationApp.monthExpenses.MonthExpenses;
+import io.github.organizationApp.security.SecurityExceptionsProcessing;
 import io.github.organizationApp.security.User;
 import javassist.NotFoundException;
 import org.slf4j.Logger;
@@ -32,7 +33,8 @@ import java.util.List;
 
 @Controller
 @GeneralExceptionsProcessing
-@ExceptionsProcessing
+@CategoryExceptionsProcessing
+@SecurityExceptionsProcessing
 @RequestMapping("/moneyapp/categories")
 public class CategoryTypeController {
     private static final Logger logger = LoggerFactory.getLogger(CategoryTypeController.class);
@@ -49,7 +51,7 @@ public class CategoryTypeController {
      */
     @Transactional
     @ResponseBody
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CategoryType> addEmptyCategoryType(@RequestParam(value = "year") final short YEAR_PARAM,
                                                       @RequestParam(value = "month") final String MONTH_PARAM,
                                                       @RequestBody @Valid final CategoryType toCategory) throws NotFoundException {
@@ -81,7 +83,7 @@ public class CategoryTypeController {
     }
     @Transactional
     @ResponseBody
-    @PostMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<CategoryFullReadModel> addCategoryTypeWithProcesses(@RequestParam(value = "year") final short YEAR_PARAM,
                                                                        @RequestParam(value = "month") final String MONTH_PARAM,
                                                                        @RequestBody @Valid final CategoryFullWriteModel toCategory) throws NotFoundException {
@@ -113,7 +115,7 @@ public class CategoryTypeController {
     }
     @Transactional
     @ResponseBody
-    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Process> addProcessToChosenCategory(@PathVariable final Integer id,
                                                               @RequestParam(value = "year") final short YEAR_PARAM,
                                                               @RequestParam(value = "month") final String MONTH_PARAM,
@@ -136,7 +138,7 @@ public class CategoryTypeController {
 
     }
     @ResponseBody
-    @GetMapping(params = {"!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"!sort","!size","!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readEmptyCategoryTypes(@RequestParam(value = "year") final short YEAR_PARAM,
                                                     @RequestParam(value = "month") final String MONTH_PARAM) throws NotFoundException {
 
@@ -159,7 +161,7 @@ public class CategoryTypeController {
         return ResponseEntity.ok(categoryTypeCollection);
     }
     @ResponseBody
-    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readEmptyCategoryTypes(Pageable page,
                                             @RequestParam(value = "year") final short YEAR_PARAM,
                                             @RequestParam(value = "month") final String MONTH_PARAM) throws NotFoundException {
@@ -183,7 +185,7 @@ public class CategoryTypeController {
         return ResponseEntity.ok(categoryTypeCollection);
     }
     @ResponseBody
-    @GetMapping(params = {"processes", "!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"processes", "!sort","!size","!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readCategoryTypesWithProcesses(@RequestParam(value = "year") final short YEAR_PARAM,
                                                             @RequestParam(value = "month") final String MONTH_PARAM) throws NotFoundException {
 
@@ -205,7 +207,7 @@ public class CategoryTypeController {
         return ResponseEntity.ok(categoryTypeCollection);
     }
     @ResponseBody
-    @GetMapping(params = {"processes"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(params = {"processes"}, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readCategoryTypesWithProcesses(final Pageable page,
                                                      @RequestParam(value = "year") final short YEAR_PARAM,
                                                      @RequestParam(value = "month") final String MONTH_PARAM) throws NotFoundException {
@@ -228,7 +230,7 @@ public class CategoryTypeController {
         return ResponseEntity.ok(categoryTypeCollection);
     }
     @ResponseBody
-    @GetMapping(value = "/{id}", params = {"!sort","!size","!page"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", params = {"!sort","!size","!page"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> readOneCategoryTypeContent(@PathVariable final Integer id,
                                                         @RequestParam(value = "year") final short YEAR_PARAM,
                                                         @RequestParam(value = "month") final String MONTH_PARAM) throws NotFoundException {
@@ -252,7 +254,7 @@ public class CategoryTypeController {
         return ResponseEntity.ok(categoryCollection);
     }
     @ResponseBody
-    @GetMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<?> readOneCategoryTypeContent(Pageable page,
                                                  @PathVariable final Integer id,
                                                  @RequestParam(value = "year") final short YEAR_PARAM,
@@ -278,7 +280,7 @@ public class CategoryTypeController {
     }
     @Transactional
     @ResponseBody
-    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> fullUpdateCategoryType(@PathVariable final Integer id,
                                                   @RequestParam(value = "year") final short YEAR_PARAM,
                                                   @RequestParam(value = "month") final String MONTH_PARAM,
@@ -312,7 +314,7 @@ public class CategoryTypeController {
     }
     @Transactional
     @ResponseBody
-    @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> partUpdateCategoryType(@PathVariable final Integer id,
                                                          @RequestParam(value = "year") final short YEAR_PARAM,
                                                          @RequestParam(value = "month") final String MONTH_PARAM,
@@ -349,7 +351,7 @@ public class CategoryTypeController {
     }
     @Transactional
     @ResponseBody
-    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Object> deleteCategoryType(@PathVariable final Integer id,
                                               @RequestParam(value = "year") final short YEAR_PARAM,
                                               @RequestParam(value = "month") final String MONTH_PARAM) throws NotFoundException {

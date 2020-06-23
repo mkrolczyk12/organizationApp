@@ -1,10 +1,9 @@
-package io.github.organizationApp.monthExpenses;
+package io.github.organizationApp.security;
 
 import io.github.organizationApp.globalControllerAdvice.ExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,19 +17,19 @@ import java.time.temporal.ChronoUnit;
 /**
  * For individual package exceptions
  */
-@RestControllerAdvice(annotations = MonthExceptionsProcessing.class)
-@Order(2)
-final class MonthExceptionsHandlingControllerAdvice extends ResponseEntityExceptionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(MonthExceptionsHandlingControllerAdvice.class);
+@RestControllerAdvice(annotations = SecurityExceptionsProcessing.class)
+@Order(1)
+final class SecurityExceptionsHandlingControllerAdvice extends ResponseEntityExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(SecurityExceptionsHandlingControllerAdvice.class);
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public final ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException exception, WebRequest request) {
+    @ExceptionHandler(NullPointerException.class)
+    public final ResponseEntity<Object> handleNullPointerException(NullPointerException exception, WebRequest request) {
 
-        final String message = "the data provided is incorrect";
-        logger.warn("captured NumberFormatException: " + exception.getMessage());
+        final String message = exception.getMessage();
+        logger.warn("captured NullPointerException: " + message);
         ExceptionResponse response =
                 new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 }
