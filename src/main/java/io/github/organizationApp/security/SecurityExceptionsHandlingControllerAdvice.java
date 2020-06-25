@@ -32,4 +32,14 @@ final class SecurityExceptionsHandlingControllerAdvice extends ResponseEntityExc
 
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
+    @ExceptionHandler(IllegalStateException.class)
+    public final ResponseEntity<Object> handleIllegalStateException(IllegalStateException exception, WebRequest request) {
+
+        final String message = exception.getMessage();
+        logger.warn("captured IllegalStateException: " + message);
+        ExceptionResponse response =
+                new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, request.getDescription(false));
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
