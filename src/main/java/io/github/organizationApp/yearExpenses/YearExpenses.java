@@ -31,6 +31,10 @@ public class YearExpenses extends RepresentationModel<YearExpenses> {
     public YearExpenses() {
     }
 
+    public YearExpenses(short year) {
+        this.year = year;
+    }
+
     public Integer getId() {return id;}
 
     public short getYear() {return year;}

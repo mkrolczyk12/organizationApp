@@ -15,8 +15,9 @@ public class User {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
 
         try {
-            KeycloakAuthenticationToken principal = (KeycloakAuthenticationToken) request.getUserPrincipal();
-            final String userId = principal.getAccount().getKeycloakSecurityContext().getToken().getSubject();
+            String userId = "9c9ba3cc-4a1c-4ed3-8376-7dc8126f9c4b";
+//            KeycloakAuthenticationToken principal = (KeycloakAuthenticationToken) request.getUserPrincipal();
+//            final String userId = principal.getAccount().getKeycloakSecurityContext().getToken().getSubject();
 
             return userId;
         } catch (NullPointerException e) {

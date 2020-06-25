@@ -41,6 +41,7 @@ public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     }
 
     public Integer getId() {return id;}
+    public void setId(final int id) {this.id = id;}
 
     public String getMonth() {return month;}
 

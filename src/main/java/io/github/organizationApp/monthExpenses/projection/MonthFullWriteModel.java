@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MonthFullWriteModel {
+    private Integer id;
     @NotBlank(message = "month type can't be null")
     private String month;
     private String description;

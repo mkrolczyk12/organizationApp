@@ -38,13 +38,8 @@ class YearExpensesService {
     }
 
     YearExpenses addYear(final YearExpenses year, final String ownerId) {
-        year.setOwnerId(ownerId);
-        try {
+            year.setOwnerId(ownerId);
             return repository.save(year);
-        } catch (RuntimeException e) {
-            logger.warn(e.getMessage());
-            throw new RuntimeException("an error occurred while working with given data");
-        }
     }
 
     YearExpenses save(final YearExpenses year) {
@@ -59,12 +54,10 @@ class YearExpensesService {
     }
 
     MonthExpenses addMonth(final MonthExpenses toMonthExpenses) {
-        try {
-            monthService.checkIfGivenMonthParameterValueRepresentsMonth(toMonthExpenses.getMonth());
+        String month = toMonthExpenses.getMonth();
+        if (monthService.checkIfGivenMonthParameterValueRepresentsMonth(month))
             return monthRepository.save(toMonthExpenses);
-        } catch (DataAccessException e) {
-            throw new IllegalArgumentException("an error occurred while working with data");
-        }
+        else throw new IllegalArgumentException("the provided value '" + month + "' does not represent the month");
     }
 
     List<?> findAll(final boolean MONTHS_FLAG_CHOSEN, final String ownerId) {
@@ -80,8 +73,6 @@ class YearExpensesService {
                         .map(YearNoMonthsReadModel::new)
                         .collect(Collectors.toList());
             }
-        } catch (DataAccessException e) {
-            throw new RuntimeException("an error occurred while working with data");
         } catch (NullPointerException e) {
             throw new NullPointerException("no years found");
         }
@@ -105,8 +96,6 @@ class YearExpensesService {
             }
 
             return new PageImpl(items);
-        } catch (DataAccessException e) {
-            throw new RuntimeException("an error occurred while working with data");
         } catch (NullPointerException e) {
             throw new NullPointerException("no years found");
         }
@@ -119,8 +108,6 @@ class YearExpensesService {
                     .map(MonthNoCategoriesReadModel::new)
                     .collect(Collectors.toList());
 
-        } catch (DataAccessException e) {
-            throw new RuntimeException("an error occurred while working with data");
         } catch (NullPointerException e) {
             throw new NullPointerException("no months found");
         }
@@ -134,8 +121,6 @@ class YearExpensesService {
                     .collect(Collectors.toList());
 
             return new PageImpl<>(months);
-        } catch (DataAccessException e) {
-            throw new RuntimeException("an error occurred while working with data");
         } catch (NullPointerException e) {
             throw new NullPointerException("no months found");
         }
@@ -153,40 +138,22 @@ class YearExpensesService {
     boolean yearLevelValidationSuccess(final Integer id, final String ownerId) throws NotFoundException {
         try {
             return repository.existsByIdAndOwnerId(id, ownerId);
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             throw new NotFoundException("given year does not exist!");
         }
     }
 
     YearExpenses saveAndFlush(final YearExpenses updatedYear) {
-        try {
-            return repository.saveAndFlush(updatedYear);
-        } catch (DataAccessException e) {
-            throw new RuntimeException("an error occurred while working with data");
-        }
+        return repository.saveAndFlush(updatedYear);
     }
 
     void deleteYear(final Integer id, final String ownerId) {
-        try {
-            repository.deleteByIdAndOwnerId(id, ownerId);
-        } catch (DataAccessException e) {
-            logger.error(e.getMessage());
-            throw new RuntimeException("an error occurred while deleting selected year");
-        }
+        repository.deleteByIdAndOwnerId(id, ownerId);
     }
 
-    boolean checkIfGivenYearExistAndIfRepresentsNumber(final YearExpenses Year, final String ownerId) {
-        try {
-            final short year = Year.getYear();
-            if(repository.existsByYearAndOwnerId(year, ownerId)) {
-                return true;
-            } else
-                return false;
-        } catch (DataAccessException e) {
-            logger.warn("an DataAccessException occurred while validating '" + Year.getYear() + "'");
-            throw new RuntimeException("given year value '" + Year.getYear() + "' does not represent a number");
-        }
-
+    boolean checkIfGivenYearValueExist(final YearExpenses Year, final String ownerId) {
+        final short year = Year.getYear();
+        return repository.existsByYearAndOwnerId(year, ownerId);
     }
 
     boolean checkIfMonthExistInGivenYear(final String monthName, final YearExpenses year, final String ownerId) throws NotFoundException {

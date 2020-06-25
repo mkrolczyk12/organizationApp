@@ -47,7 +47,8 @@ public class MonthExpensesService {
 
     MonthExpenses save(final MonthExpenses month) {
         checkIfGivenMonthParameterValueRepresentsMonth(month.getMonth());
-        return repository.save(month);}
+        return repository.save(month);
+    }
 
     CategoryType addCategory(final CategoryType toCategoryType) {
         return categoryRepository.save(toCategoryType);

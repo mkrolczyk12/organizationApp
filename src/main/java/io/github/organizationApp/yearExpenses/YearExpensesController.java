@@ -52,7 +52,7 @@ public class YearExpensesController {
     public ResponseEntity<Object> addEmptyYear(@RequestBody @Valid final YearExpenses toYear) {
 
         final String USER_ID = User.getUserId();
-        if(service.checkIfGivenYearExistAndIfRepresentsNumber(toYear, USER_ID)) {
+        if(service.checkIfGivenYearValueExist(toYear, USER_ID)) {
             final String message = "a year '" + toYear.getYear() + "' already exists!";
             logger.info(message);
             ExceptionResponse response = new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, "-");
@@ -195,7 +195,7 @@ public class YearExpensesController {
             return new ResponseEntity(response, HttpStatus.BAD_REQUEST);
         }
 
-        if(service.checkIfGivenYearExistAndIfRepresentsNumber(toUpdate, USER_ID)) {
+        if(service.checkIfGivenYearValueExist(toUpdate, USER_ID)) {
             final String message = "a year '" + toUpdate.getYear() + "' already exists!";
             logger.info(message);
             ExceptionResponse response = new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, "-");
@@ -232,7 +232,7 @@ public class YearExpensesController {
         short yearAfterUpdate = updatedYear.getYear();
 
         if(!(yearBeforeUpdate == yearAfterUpdate)) {
-            if(service.checkIfGivenYearExistAndIfRepresentsNumber(updatedYear, USER_ID)) {
+            if(service.checkIfGivenYearValueExist(updatedYear, USER_ID)) {
                 throw new IllegalStateException("the given year already exists!");
             }
         }
