@@ -3,7 +3,7 @@ spring:
       enabled: true
       path: '/dbconsole'
   datasource:
-    url: 'jdbc:h2:file:C:/Users/Marcin/IdeaProjects/organizationApp/organizationApp-db'
+    url: 'jdbc:h2:file:/home/marcin/Projects/organizationApp/organizationApp-db'
   jpa:
     hibernate:
       ddl-auto: validate

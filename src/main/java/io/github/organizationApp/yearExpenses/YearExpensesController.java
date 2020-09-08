@@ -29,6 +29,7 @@ import java.util.List;
 
 
 @Controller
+@CrossOrigin
 @GeneralExceptionsProcessing
 @YearExceptionsProcessing
 @SecurityExceptionsProcessing

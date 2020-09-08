@@ -32,6 +32,7 @@ import java.util.List;
 
 
 @Controller
+@CrossOrigin
 @GeneralExceptionsProcessing
 @CategoryExceptionsProcessing
 @SecurityExceptionsProcessing

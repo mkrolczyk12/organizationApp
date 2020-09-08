@@ -30,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @Controller
+@CrossOrigin
 @GeneralExceptionsProcessing
 @ProcessExceptionsProcessing
 @SecurityExceptionsProcessing
