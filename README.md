@@ -1,4 +1,5 @@
 # OrganizationApp
+Back end part of organizationApp
 > Track your expenses, monitor your earnings, be aware of your finances!
 
 ## Table of contents
