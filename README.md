@@ -645,9 +645,9 @@ Link: https://www.keycloak.org//downloads.html <br />
 After download, extract file and move inside your previously cloned project. <br />
 Go to folder keycloak-[10.0.1]/bin, open console and write the following command: 
 ```
-windows: <br />
+windows:
 $ standalone.bat -Djboss.socket.binding.port-offset=100
-linux: <br/>
+linux:
 $ ./standalone.sh -Djboss.socket.binding.port-offset=100
 ```
 Wait until script loaded. From this moment you are able to manage keycloak admin account. <br />
