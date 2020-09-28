@@ -27,7 +27,7 @@ The main goal of the application is to track all your daily expenses. The collec
 * spring-boot-starter: actuator, data-jpa, hateoas, web, security, starter-test
 
 ## Extended info
-In the current version the application has no frontend, communication with the application takes place via JSON API, whose endpoints can be found below. The project structure is expanded according to individual application components. The application has two profiles: local and production. Project also has a configuration that allow/deny uses spring aspects for measures the time of performing each function from the expensesProcess Package (in the future the measurement will cover all functions from each package).
+Communication with the application takes place via JSON API, whose endpoints can be found below. The project structure is expanded according to individual application components. The application has two profiles: local and production. Project also has a configuration that allow/deny uses spring aspects for measures the time of performing each function from the expensesProcess Package (in the future the measurement will cover all functions from each package).
 A brief description of each project package:
 * aspect - contains all aspects around functions in the application
 * categoryExpenses - part of the application related with categories
@@ -37,6 +37,9 @@ A brief description of each project package:
 * globalControllerAdvice - section related with exception handling at the entire application level
 * security - a package responsible for configuration with Keycloak - open source software for identity and Access Management
 * mvcConfiguration - section related with HttpServletRequest filters, interceptors
+
+If you want to see the frontend part of application, please follow the link below: <br />
+https://github.com/mkrolczyk12/organizationAppFE
 
 ## API endpoints
 ### Year section
@@ -642,7 +645,10 @@ Link: https://www.keycloak.org//downloads.html <br />
 After download, extract file and move inside your previously cloned project. <br />
 Go to folder keycloak-[10.0.1]/bin, open console and write the following command: 
 ```
+windows: <br />
 $ standalone.bat -Djboss.socket.binding.port-offset=100
+linux: <br/>
+$ ./standalone.sh -Djboss.socket.binding.port-offset=100
 ```
 Wait until script loaded. From this moment you are able to manage keycloak admin account. <br />
 Realm managing page: http://localhost:8180/auth/ <br />
@@ -664,7 +670,6 @@ Ready features:
 * Processes section: read single process content, read all user processes (required ?{all} param), read all user processes (?{all} + [sort,page,size] params) put process, patch process, delete process
 
 To-do list:
-* Frontend
 * Statistics for expenses
 * Earnings section + statistics
 
