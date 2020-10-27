@@ -1,9 +1,11 @@
 spring:
   h2.console:
-      enabled: true
+      enabled: false
       path: '/dbconsole'
   datasource:
-    url: 'jdbc:h2:file:/home/marcin/Projects/organizationApp/organizationApp-db'
+    username: 'admin'
+    password: 'admin'
+    url: 'jdbc:h2:file:/home/marcin/Projects/organizationApp/testApp-db'
   jpa:
     hibernate:
       ddl-auto: validate
