@@ -29,6 +29,6 @@ build/
 
 ### VS Code ###
 .vscode/
-testApp-db.mv
-testApp-db.trace
+testApp-db.mv.db
+testApp-db.trace.db
 keycloak-10.0.1

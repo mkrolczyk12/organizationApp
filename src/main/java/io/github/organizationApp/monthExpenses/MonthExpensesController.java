@@ -36,7 +36,7 @@ import java.util.List;
 @GeneralExceptionsProcessing
 @MonthExceptionsProcessing
 @SecurityExceptionsProcessing
-@RequestMapping("/moneyapp/months")
+@RequestMapping("/months")
 public class MonthExpensesController {
     private static final Logger logger = LoggerFactory.getLogger(MonthExpensesController.class);
     private final MonthExpensesService service;

@@ -11,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "month_expenses")
-@JsonIgnoreProperties({"id","year","categories","ownerId"})
+@JsonIgnoreProperties({"year","categories","ownerId"})
 public class MonthExpenses extends RepresentationModel<MonthExpenses> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

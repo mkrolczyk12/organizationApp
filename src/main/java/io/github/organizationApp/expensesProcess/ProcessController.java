@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 @GeneralExceptionsProcessing
 @ProcessExceptionsProcessing
 @SecurityExceptionsProcessing
-@RequestMapping("/moneyapp/processes")
+@RequestMapping("/processes")
 public class ProcessController {
     private static final Logger logger = LoggerFactory.getLogger(ProcessController.class);
     private final ProcessService service;
@@ -175,8 +175,5 @@ public class ProcessController {
         logger.warn("deleted process with id = " +id);
         return ResponseEntity.ok().build();
     }
-    /**
-     * Templates
-     */
 }
 

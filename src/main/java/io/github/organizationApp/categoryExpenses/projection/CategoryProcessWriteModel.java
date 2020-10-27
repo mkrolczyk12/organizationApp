@@ -40,17 +40,16 @@ public class CategoryProcessWriteModel {
     public void setNotes(final String notes) {this.notes = notes;}
 
     public Process toProcess(final CategoryType categoryType, final String ownerId) {
-        return new Process
-            .ProcessBuilder()
-            .buildPrice(price)
-            .buildCurrency(currency)
-            .buildBuyDate(buy_date)
-            .buildDescription(description)
-            .buildTransactionType(transaction_type)
-            .buildNotes(notes)
-            .buildCategoryType(categoryType)
-            .buildOwnerId(ownerId)
-            .build();
-//        return new Process(price, currency, buy_date, description, transaction_type, notes, categoryType, ownerId);
+        return new
+            Process.ProcessBuilder()
+                .buildPrice(price)
+                .buildCurrency(currency)
+                .buildBuyDate(buy_date)
+                .buildDescription(description)
+                .buildTransactionType(transaction_type)
+                .buildNotes(notes)
+                .buildCategoryType(categoryType)
+                .buildOwnerId(ownerId)
+                .build();
     }
 }

@@ -36,7 +36,7 @@ import java.util.List;
 @GeneralExceptionsProcessing
 @CategoryExceptionsProcessing
 @SecurityExceptionsProcessing
-@RequestMapping("/moneyapp/categories")
+@RequestMapping("/categories")
 public class CategoryTypeController {
     private static final Logger logger = LoggerFactory.getLogger(CategoryTypeController.class);
     private final CategoryTypeService service;

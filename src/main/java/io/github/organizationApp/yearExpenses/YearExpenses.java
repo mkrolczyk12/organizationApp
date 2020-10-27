@@ -5,14 +5,12 @@ import io.github.organizationApp.monthExpenses.MonthExpenses;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
 @Table(name = "year_expenses")
-@JsonIgnoreProperties({"id", "months", "ownerId"})
+@JsonIgnoreProperties({"months", "ownerId"})
 public class YearExpenses extends RepresentationModel<YearExpenses> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

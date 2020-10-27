@@ -33,7 +33,7 @@ import java.util.List;
 @GeneralExceptionsProcessing
 @YearExceptionsProcessing
 @SecurityExceptionsProcessing
-@RequestMapping("/moneyapp/years")
+@RequestMapping("/years")
 public class YearExpensesController {
     private static final Logger logger = LoggerFactory.getLogger(YearExpensesController.class);
     private final YearExpensesService service;
