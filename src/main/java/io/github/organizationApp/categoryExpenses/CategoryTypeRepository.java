@@ -23,4 +23,6 @@ public interface CategoryTypeRepository {
     CategoryType saveAndFlush(final CategoryType updatedCategoryType);
 
     void deleteById(final Integer id);
+
+    boolean existsByMonthExpenses(final MonthExpenses monthExpenses);
 }

@@ -282,6 +282,11 @@ class MonthExpensesServiceTest {
         }
 
         @Override
+        public MonthExpenses findByYearAndMonthAndOwnerId(final YearExpenses year, final String month, final String ownerId) {
+            return null;
+        }
+
+        @Override
         public boolean existsByMonthAndYearAndOwnerId(final String month, final YearExpenses year, final String ownerId) {
             return false;
         }

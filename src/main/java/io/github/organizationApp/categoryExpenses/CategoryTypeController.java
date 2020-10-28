@@ -237,7 +237,7 @@ public class CategoryTypeController {
                                                         @RequestParam(value = "month") final String MONTH_PARAM) throws NotFoundException {
 
         final String USER_ID = User.getUserId();
-        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM,MONTH_PARAM, USER_ID)) {
+        if(!service.categoryTypeLevelValidationSuccess(YEAR_PARAM, MONTH_PARAM, USER_ID)) {
             final String message = "category level validation failed, no relation between given year and month";
             logger.info(message);
             ExceptionResponse response = new ExceptionResponse(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS), message, "-");

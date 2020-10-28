@@ -13,6 +13,4 @@ interface SqlCategoryTypeRepository extends CategoryTypeRepository, JpaRepositor
     @Override
     @Query("from CategoryType c join fetch c.processes")
     List<CategoryType> findAll();
-    // TODO -> trzeba porobic tak dla wsztstkich zarowno category,month jak i year
-
 }

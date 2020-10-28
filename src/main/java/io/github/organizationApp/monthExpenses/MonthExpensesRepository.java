@@ -16,6 +16,7 @@ public interface MonthExpensesRepository {
     Optional<MonthExpenses> findByIdAndOwnerId(Integer id, final String ownerId);
     Optional<MonthExpenses> findByMonthAndOwnerId(String month, final String ownerId);
     Optional<MonthExpenses> findByMonthAndYearId(final String month, Integer yearId);
+    MonthExpenses findByYearAndMonthAndOwnerId(final YearExpenses year, final String month, final String ownerId);
 
     boolean existsByMonthAndYearAndOwnerId(String month, YearExpenses year, final String ownerId);
 

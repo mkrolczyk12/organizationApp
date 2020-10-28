@@ -161,7 +161,7 @@ public class CategoryTypeService {
         try {
             return yearRepository.findByYearAndOwnerId(year, ownerId)
                     .map(result -> {
-                        if(monthRepository.existsByMonthAndYearAndOwnerId(month, result, ownerId)) {
+                        if((monthRepository.existsByMonthAndYearAndOwnerId(month, result, ownerId) && repository.existsByMonthExpenses(monthRepository.findByYearAndMonthAndOwnerId(result, month, ownerId)))) {
                             return true;
                         } else
                             return false;

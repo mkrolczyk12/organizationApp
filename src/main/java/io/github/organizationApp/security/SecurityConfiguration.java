@@ -43,7 +43,7 @@ public class SecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter 
     protected void configure(final HttpSecurity http) throws Exception {
         super.configure(http);
         http.authorizeRequests()
-                .mvcMatchers("/moneyapp/*")
+                .mvcMatchers("/*")
                 .hasAnyRole("USER","ADMIN","POSTMAN")
                 .anyRequest()
                 .permitAll();
